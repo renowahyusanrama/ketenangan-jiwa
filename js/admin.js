@@ -15,6 +15,7 @@ import {
   doc as firestoreDoc,
   getDoc,
   getDocs,
+  onSnapshot,
   setDoc,
   deleteDoc,
   serverTimestamp,
@@ -132,6 +133,8 @@ let lastOrderDoc = null;
 let ordersLoading = false;
 const ORDERS_PAGE_SIZE = 25;
 const LOAD_ALL_ORDERS = true;
+let ordersRealtimeUnsub = null;
+let ordersCache = [];
 let qrScanner = null;
 let qrScanning = false;
 const SCAN_DELAY_MS = 300;
@@ -161,6 +164,15 @@ function showLoggedInUI(email) {
   userInfo?.classList.remove("hidden");
   loginBtn?.classList.add("hidden");
   logoutBtn?.classList.remove("hidden");
+}
+
+function resetOrdersRealtime() {
+  if (ordersRealtimeUnsub) {
+    ordersRealtimeUnsub();
+    ordersRealtimeUnsub = null;
+  }
+  ordersCache = [];
+  ordersLoading = false;
 }
 
 let lastUsedWarningRef = null;
@@ -831,14 +843,20 @@ function populateEventFilter(eventList = []) {
   }
 }
 
-async function loadOrderStats() {
+async function loadOrderStats(rowsOverride) {
   if (!isAdmin || statsLoading) return;
   if (!statRevenueEl && !statStatusListEl) return;
   statsLoading = true;
   try {
-    const ref = collection(db, "orders");
-    const snap = await getDocs(ref);
-    const rows = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    let rows = Array.isArray(rowsOverride) ? rowsOverride : null;
+    if (!rows) {
+      rows = LOAD_ALL_ORDERS && ordersCache.length ? ordersCache : null;
+    }
+    if (!rows) {
+      const ref = collection(db, "orders");
+      const snap = await getDocs(ref);
+      rows = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    }
     const eventFilterValue = statEventFilter?.value || selectedEventFilter || "";
     selectedEventFilter = eventFilterValue;
     renderOrderStats(rows, eventFilterValue);
@@ -849,48 +867,18 @@ async function loadOrderStats() {
   }
 }
 
-async function loadOrders(reset = true) {
-  if (!isAdmin) return;
-  if (ordersLoading) return;
-  if (LOAD_ALL_ORDERS && !reset) reset = true;
-  ordersLoading = true;
-
+function renderOrders(rows = [], reset = true, pageCount = null) {
   let existingHtml = "";
   if (ordersTableBody) {
     existingHtml = ordersTableBody.innerHTML;
     if (reset) {
       existingHtml = "";
-      ordersTableBody.innerHTML = `<tr><td colspan="9" class="muted">Memuat data...</td></tr>`;
     }
   }
-  if (reset) lastOrderDoc = null;
 
   const statusFilter = (orderStatusFilter?.value || "").toLowerCase();
   const searchTerm = (orderSearch?.value || "").trim().toLowerCase();
   const eventFilterValue = selectedOrderEventFilter || "";
-
-  const ref = collection(db, "orders");
-  let q = query(ref, orderBy("createdAt", "desc"));
-  if (!LOAD_ALL_ORDERS) {
-    q = query(ref, orderBy("createdAt", "desc"), limit(ORDERS_PAGE_SIZE));
-    if (lastOrderDoc) {
-      q = query(ref, orderBy("createdAt", "desc"), startAfter(lastOrderDoc), limit(ORDERS_PAGE_SIZE));
-    }
-  }
-
-  let snap;
-  try {
-    snap = await getDocs(q);
-  } catch (err) {
-    console.warn("loadOrders fallback getDocs:", err?.message || err);
-    snap = await getDocs(ref);
-  }
-
-  const rows = [];
-  snap?.forEach((d) => {
-    const data = d.data() || {};
-    rows.push({ id: d.id, ...data, _snap: d });
-  });
 
   const filtered = rows.filter((o) => {
     if (eventFilterValue && !matchesOrderEvent(o, eventFilterValue)) return false;
@@ -939,9 +927,6 @@ async function loadOrders(reset = true) {
     }
   }
 
-  if (snap && snap.docs && snap.docs.length) {
-    lastOrderDoc = snap.docs[snap.docs.length - 1];
-  }
   if (ordersStatusText) {
     const eventSuffix = eventFilterValue ? ` untuk ${getEventLabel(eventFilterValue)}` : "";
     ordersStatusText.textContent = `Memuat ${filtered.length} transaksi${eventSuffix}.`;
@@ -952,10 +937,81 @@ async function loadOrders(reset = true) {
       loadMoreOrdersBtn.classList.add("hidden");
     } else {
       const allowPaging = !searchTerm; // saat pencarian aktif, matikan paging agar tidak membingungkan
-      loadMoreOrdersBtn.disabled = !allowPaging || !snap || !snap.docs || snap.docs.length < ORDERS_PAGE_SIZE;
+      const count = Number.isFinite(pageCount) ? pageCount : rows.length;
+      loadMoreOrdersBtn.disabled = !allowPaging || count < ORDERS_PAGE_SIZE;
     }
   }
-  loadOrderStats();
+  loadOrderStats(rows);
+}
+
+async function loadOrders(reset = true) {
+  if (!isAdmin) return;
+  if (LOAD_ALL_ORDERS && !reset) reset = true;
+  if (LOAD_ALL_ORDERS) {
+    if (ordersTableBody && reset && !ordersCache.length) {
+      ordersTableBody.innerHTML = `<tr><td colspan="9" class="muted">Memuat data...</td></tr>`;
+    }
+    if (!ordersRealtimeUnsub) {
+      ordersLoading = true;
+      const ref = collection(db, "orders");
+      const q = query(ref, orderBy("createdAt", "desc"));
+      ordersRealtimeUnsub = onSnapshot(
+        q,
+        (snap) => {
+          const rows = [];
+          snap.forEach((d) => {
+            const data = d.data() || {};
+            rows.push({ id: d.id, ...data, _snap: d });
+          });
+          ordersCache = rows;
+          renderOrders(rows, true, snap?.docs?.length);
+          ordersLoading = false;
+        },
+        (err) => {
+          console.error("Realtime orders error:", err);
+          if (ordersTableBody) {
+            ordersTableBody.innerHTML = `<tr><td colspan="9" class="muted">Gagal memuat transaksi.</td></tr>`;
+          }
+          ordersLoading = false;
+        },
+      );
+    } else if (!ordersLoading) {
+      renderOrders(ordersCache, true, ordersCache.length);
+    }
+    return;
+  }
+
+  if (ordersLoading) return;
+  ordersLoading = true;
+  if (reset && ordersTableBody) {
+    ordersTableBody.innerHTML = `<tr><td colspan="9" class="muted">Memuat data...</td></tr>`;
+  }
+  if (reset) lastOrderDoc = null;
+
+  const ref = collection(db, "orders");
+  let q = query(ref, orderBy("createdAt", "desc"), limit(ORDERS_PAGE_SIZE));
+  if (lastOrderDoc) {
+    q = query(ref, orderBy("createdAt", "desc"), startAfter(lastOrderDoc), limit(ORDERS_PAGE_SIZE));
+  }
+
+  let snap;
+  try {
+    snap = await getDocs(q);
+  } catch (err) {
+    console.warn("loadOrders fallback getDocs:", err?.message || err);
+    snap = await getDocs(ref);
+  }
+
+  const rows = [];
+  snap?.forEach((d) => {
+    const data = d.data() || {};
+    rows.push({ id: d.id, ...data, _snap: d });
+  });
+
+  if (snap && snap.docs && snap.docs.length) {
+    lastOrderDoc = snap.docs[snap.docs.length - 1];
+  }
+  renderOrders(rows, reset, snap?.docs?.length);
   ordersLoading = false;
 }
 
@@ -2152,6 +2208,7 @@ onAuthStateChanged(auth, async (user) => {
     isAdmin = false;
     stopQrScan();
     qrPanel?.classList.add("hidden");
+    resetOrdersRealtime();
     setDashboardVisible(false);
     setGuard("Silakan login dengan akun admin.");
     showLoggedOutUI();
@@ -2173,6 +2230,7 @@ onAuthStateChanged(auth, async (user) => {
   if (!isAdmin) {
     stopQrScan();
     qrPanel?.classList.add("hidden");
+    resetOrdersRealtime();
     setDashboardVisible(false);
     showLoggedOutUI();
     setGuard("Akun ini tidak memiliki akses admin. Minta panitia menambahkan custom claim admin.", false);
