@@ -131,6 +131,7 @@ const eventsCache = new Map();
 let lastOrderDoc = null;
 let ordersLoading = false;
 const ORDERS_PAGE_SIZE = 25;
+const LOAD_ALL_ORDERS = true;
 let qrScanner = null;
 let qrScanning = false;
 const SCAN_DELAY_MS = 300;
@@ -851,6 +852,7 @@ async function loadOrderStats() {
 async function loadOrders(reset = true) {
   if (!isAdmin) return;
   if (ordersLoading) return;
+  if (LOAD_ALL_ORDERS && !reset) reset = true;
   ordersLoading = true;
 
   let existingHtml = "";
@@ -868,9 +870,12 @@ async function loadOrders(reset = true) {
   const eventFilterValue = selectedOrderEventFilter || "";
 
   const ref = collection(db, "orders");
-  let q = query(ref, orderBy("createdAt", "desc"), limit(ORDERS_PAGE_SIZE));
-  if (lastOrderDoc) {
-    q = query(ref, orderBy("createdAt", "desc"), startAfter(lastOrderDoc), limit(ORDERS_PAGE_SIZE));
+  let q = query(ref, orderBy("createdAt", "desc"));
+  if (!LOAD_ALL_ORDERS) {
+    q = query(ref, orderBy("createdAt", "desc"), limit(ORDERS_PAGE_SIZE));
+    if (lastOrderDoc) {
+      q = query(ref, orderBy("createdAt", "desc"), startAfter(lastOrderDoc), limit(ORDERS_PAGE_SIZE));
+    }
   }
 
   let snap;
@@ -939,11 +944,16 @@ async function loadOrders(reset = true) {
   }
   if (ordersStatusText) {
     const eventSuffix = eventFilterValue ? ` untuk ${getEventLabel(eventFilterValue)}` : "";
-    ordersStatusText.textContent = `Memuat ${filtered.length} transaksi${eventSuffix} (batch ${snap?.size || 0}).`;
+    ordersStatusText.textContent = `Memuat ${filtered.length} transaksi${eventSuffix}.`;
   }
   if (loadMoreOrdersBtn) {
-    const allowPaging = !searchTerm; // saat pencarian aktif, matikan paging agar tidak membingungkan
-    loadMoreOrdersBtn.disabled = !allowPaging || !snap || !snap.docs || snap.docs.length < ORDERS_PAGE_SIZE;
+    if (LOAD_ALL_ORDERS) {
+      loadMoreOrdersBtn.disabled = true;
+      loadMoreOrdersBtn.classList.add("hidden");
+    } else {
+      const allowPaging = !searchTerm; // saat pencarian aktif, matikan paging agar tidak membingungkan
+      loadMoreOrdersBtn.disabled = !allowPaging || !snap || !snap.docs || snap.docs.length < ORDERS_PAGE_SIZE;
+    }
   }
   loadOrderStats();
   ordersLoading = false;
