@@ -608,6 +608,16 @@ function initPaymentForm(event) {
       .toLowerCase();
   }
 
+  async function fetchWithTimeout(url, options = {}, timeoutMs = 20000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(id);
+    }
+  }
+
   async function getAuthToken() {
     if (!currentUser) return "";
     try {
@@ -786,7 +796,7 @@ function initPaymentForm(event) {
       const token = await getAuthToken();
       const headers = { "Content-Type": "application/json" };
       if (token) headers.Authorization = `Bearer ${token}`;
-      const response = await fetch(`${API_BASE}/referrals/validate`, {
+      const response = await fetchWithTimeout(`${API_BASE}/referrals/validate`, {
         method: "POST",
         headers,
         body: JSON.stringify({
@@ -795,7 +805,7 @@ function initPaymentForm(event) {
           eventId: event.id,
           ticketType: selectedTicket,
         }),
-      });
+      }, 15000);
       if (referralCheckKey !== `${code}|${email}`) return;
       if (!response.ok) {
         const errPayload = await response.json().catch(() => ({}));
@@ -813,7 +823,12 @@ function initPaymentForm(event) {
       refreshReferralHint();
     } catch (err) {
       referralState = { code, valid: false, data: null, uses: 0, email };
-      setReferralHint("Tidak bisa memeriksa kode referral. Coba lagi.", "error");
+      setReferralHint(
+        err?.name === "AbortError"
+          ? "Server referral tidak merespons. Coba lagi."
+          : "Tidak bisa memeriksa kode referral. Coba lagi.",
+        "error",
+      );
       updateTicketSelection(selectedTicket);
     }
   }
@@ -969,11 +984,11 @@ function initPaymentForm(event) {
       const token = await getAuthToken();
       const headers = { "Content-Type": "application/json" };
       if (token) headers.Authorization = `Bearer ${token}`;
-      const response = await fetch(`${API_BASE}/payments/create`, {
+      const response = await fetchWithTimeout(`${API_BASE}/payments/create`, {
         method: "POST",
         headers,
         body: JSON.stringify(payload),
-      });
+      }, 20000);
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
@@ -1055,7 +1070,12 @@ function initPaymentForm(event) {
       }
     } catch (err) {
       console.error(err);
-      setHint(err.message || "Gagal memproses pembayaran.", "error");
+      setHint(
+        err?.name === "AbortError"
+          ? "Server pembayaran tidak merespons. Coba lagi."
+          : err.message || "Gagal memproses pembayaran.",
+        "error",
+      );
       renderPaymentResult(resultBox, null);
     } finally {
       isSubmitting = false;
