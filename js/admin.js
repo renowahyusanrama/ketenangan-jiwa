@@ -207,18 +207,10 @@ async function updateCheckin(orderId, verified) {
 function setQrStatus(message, isError = false, isSuccess = false) {
   if (!qrStatus) return;
   qrStatus.textContent = message;
-  if (isError) {
-    qrStatus.style.color = "#f87171";
-    qrStatus.style.fontWeight = "400";
-    return;
-  }
-  if (isSuccess) {
-    qrStatus.style.color = "#4ade80";
-    qrStatus.style.fontWeight = "700";
-    return;
-  }
-  qrStatus.style.color = "#cbd5e1";
-  qrStatus.style.fontWeight = "400";
+  const color = isError ? "#f87171" : isSuccess ? "#4ade80" : "#cbd5e1";
+  const weight = isSuccess ? "700" : "400";
+  qrStatus.style.setProperty("color", color, "important");
+  qrStatus.style.setProperty("font-weight", weight, "important");
 }
 
 function extractRefFromQr(text) {
