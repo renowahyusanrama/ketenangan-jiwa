@@ -204,10 +204,21 @@ async function updateCheckin(orderId, verified) {
   }
 }
 
-function setQrStatus(message, isError = false) {
+function setQrStatus(message, isError = false, isSuccess = false) {
   if (!qrStatus) return;
   qrStatus.textContent = message;
-  qrStatus.style.color = isError ? "#f87171" : "#cbd5e1";
+  if (isError) {
+    qrStatus.style.color = "#f87171";
+    qrStatus.style.fontWeight = "400";
+    return;
+  }
+  if (isSuccess) {
+    qrStatus.style.color = "#4ade80";
+    qrStatus.style.fontWeight = "700";
+    return;
+  }
+  qrStatus.style.color = "#cbd5e1";
+  qrStatus.style.fontWeight = "400";
 }
 
 function extractRefFromQr(text) {
@@ -291,7 +302,7 @@ async function verifyByRef(refValue) {
   }
 
   const ok = await updateCheckin(orderId, true);
-  setQrStatus(ok ? `Berhasil verifikasi ${code}.` : `Gagal verifikasi ${code}.`, !ok);
+  setQrStatus(ok ? `Berhasil verifikasi ${code}.` : `Gagal verifikasi ${code}.`, !ok, ok);
   if (ok && qrInput) qrInput.value = "";
   return ok;
 }
