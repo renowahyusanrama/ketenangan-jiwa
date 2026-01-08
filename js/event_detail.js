@@ -601,7 +601,11 @@ function initPaymentForm(event) {
   }
 
   function normalizeEmail(value) {
-    return (value || "").toString().trim().toLowerCase();
+    return (value || "")
+      .toString()
+      .replace(/[\u200B-\u200D\uFEFF]/g, "")
+      .replace(/\s+/g, "")
+      .toLowerCase();
   }
 
   async function getAuthToken() {
@@ -923,8 +927,8 @@ function initPaymentForm(event) {
     setPayLabel("Memproses...");
 
     const formData = new FormData(form);
-    const email = formData.get("email")?.toString().trim() || "";
-    if (!/@gmail\.com$/i.test(email)) {
+    const email = normalizeEmail(formData.get("email"));
+    if (!email.endsWith("@gmail.com")) {
       setHint("Email harus menggunakan Gmail (contoh: nama@gmail.com).", "error");
       isSubmitting = false;
       payBtn.disabled = false;
