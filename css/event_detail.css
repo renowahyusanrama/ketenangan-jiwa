@@ -243,6 +243,18 @@
   transform:translateY(0);
   box-shadow:0 10px 24px rgba(55,117,181,0.28);
 }
+.booking-card .btn-primary.sold-out{
+  background:#dc2626;
+  box-shadow:0 12px 30px rgba(220,38,38,0.28);
+  cursor:not-allowed;
+}
+.booking-card .btn-primary.sold-out:hover{
+  transform:none;
+  box-shadow:0 12px 30px rgba(220,38,38,0.28);
+}
+.booking-card .btn-primary.sold-out:active{
+  transform:none;
+}
 
 .contact-hint {
   font-size: 0.9rem;

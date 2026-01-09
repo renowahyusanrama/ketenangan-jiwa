@@ -93,6 +93,18 @@ async function reserveSeatAndSaveOrder(db, eventDocId, orderDocId, orderData) {
     const usedReg = Number(evData.seatsUsedRegular) || 0;
     const usedVip = Number(evData.seatsUsedVip) || 0;
     const type = (orderData.ticketType || "regular") === "vip" ? "vip" : "regular";
+    const statusText = (evData.ticketStatus || evData.salesStatus || evData.registrationStatus || "")
+      .toString()
+      .toLowerCase();
+    const isClosed =
+      evData.soldOut === true ||
+      evData.isSoldOut === true ||
+      evData.ticketClosed === true ||
+      ["sold_out", "soldout", "closed"].includes(statusText);
+
+    if (isClosed) {
+      throw new Error("Penjualan tiket sudah ditutup.");
+    }
 
     if (type === "vip") {
       if (quotaVip > 0 && usedVip >= quotaVip) {

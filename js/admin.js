@@ -77,6 +77,8 @@ const previewSchedule = document.getElementById("previewSchedule");
 const previewLocation = document.getElementById("previewLocation");
 const previewSpeaker = document.getElementById("previewSpeaker");
 const previewPrice = document.getElementById("previewPrice");
+const ticketStatusInput = eventForm?.querySelector('[name="ticketStatus"]');
+const ticketStatusButtons = [...document.querySelectorAll("[data-ticket-status]")];
 const ordersTableBody = document.querySelector("#ordersTable tbody");
 const ordersStatusText = document.getElementById("ordersStatus");
 const orderStatusFilter = document.getElementById("orderStatusFilter");
@@ -1063,6 +1065,25 @@ async function requireAdmin(user) {
   return tokenResult?.claims?.admin === true;
 }
 
+function normalizeTicketStatus(value) {
+  const status = (value || "").toString().toLowerCase();
+  return ["sold_out", "soldout", "closed"].includes(status) ? "sold_out" : "sell_on";
+}
+
+function setTicketStatus(value) {
+  const normalized = normalizeTicketStatus(value);
+  if (ticketStatusInput) ticketStatusInput.value = normalized;
+  ticketStatusButtons.forEach((btn) => {
+    const isActive = btn.dataset.ticketStatus === normalized;
+    btn.classList.toggle("active", isActive);
+  });
+  return normalized;
+}
+
+function getTicketStatus() {
+  return normalizeTicketStatus(ticketStatusInput?.value);
+}
+
 async function loadEvents() {
   if (!isAdmin) return;
   tableBody.innerHTML = `<tr><td colspan="9" class="muted">Memuat data...</td></tr>`;
@@ -1085,6 +1106,11 @@ async function loadEvents() {
     tableBody.innerHTML = rows
       .map((e) => {
         const statusClass = e.status === "published" ? "green" : "gray";
+        const ticketStatus = normalizeTicketStatus(e.ticketStatus || (e.soldOut ? "sold_out" : ""));
+        const ticketStatusClass = ticketStatus === "sold_out" ? "red" : "green";
+        const ticketStatusText = ticketStatus === "sold_out" ? "sold out" : "sell on";
+        const ticketToggleLabel = ticketStatus === "sold_out" ? "Sell On" : "Sold Out";
+        const ticketToggleNext = ticketStatus === "sold_out" ? "sell_on" : "sold_out";
         const img = e.imageUrl ? `<a href="${e.imageUrl}" target="_blank">Lihat</a>` : "-";
         const capacity = Number(e.capacity) || 0;
         const used = Number(e.seatsUsed) || 0;
@@ -1107,7 +1133,10 @@ async function loadEvents() {
           <tr>
             <td data-label="Judul">${e.title || "-"}</td>
             <td data-label="Slug">${e.slug || e.id}</td>
-            <td data-label="Status"><span class="badge ${statusClass}">${e.status || "draft"}</span></td>
+            <td data-label="Status">
+              <span class="badge ${statusClass}">${e.status || "draft"}</span>
+              <span class="badge ${ticketStatusClass} ticket-badge">${ticketStatusText}</span>
+            </td>
             <td data-label="Tanggal">${e.schedule || "-"}</td>
             <td data-label="Lokasi">${e.location || "-"}</td>
             <td data-label="Harga">${priceText}</td>
@@ -1117,6 +1146,7 @@ async function loadEvents() {
               <div class="table-actions">
                 <button class="outline" data-edit="${e.id}">Edit</button>
                 <button class="outline" data-duplicate="${e.id}">Duplikat</button>
+                <button class="outline" data-ticket-toggle="${e.id}" data-ticket-next="${ticketToggleNext}">${ticketToggleLabel}</button>
                 <button class="danger" data-delete="${e.id}">Hapus</button>
               </div>
             </td>
@@ -1128,6 +1158,36 @@ async function loadEvents() {
   } catch (err) {
     console.error(err);
     tableBody.innerHTML = `<tr><td colspan="9" class="muted">Gagal memuat event: ${err.message}</td></tr>`;
+  }
+}
+
+async function updateTicketStatus(eventId, nextStatus) {
+  if (!eventId) return;
+  if (!isAdmin || !currentUser) {
+    alert("Tidak ada akses admin.");
+    return;
+  }
+  const status = normalizeTicketStatus(nextStatus);
+  const ref = firestoreDoc(db, "events", eventId);
+  try {
+    await setDoc(
+      ref,
+      {
+        ticketStatus: status,
+        soldOut: status === "sold_out",
+        updatedAt: serverTimestamp(),
+        updatedBy: currentUser.uid,
+      },
+      { merge: true },
+    );
+    await loadEvents();
+    if (editingSlug === eventId) {
+      const updated = eventsCache.get(eventId);
+      if (updated) fillForm(updated);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Gagal memperbarui status penjualan: " + (err?.message || err));
   }
 }
 
@@ -1875,6 +1935,7 @@ function fillForm(data) {
   eventForm.slug.value = data.slug || data.id || "";
   eventForm.category.value = data.category || "";
   eventForm.status.value = data.status || "draft";
+  setTicketStatus(data.ticketStatus || (data.soldOut ? "sold_out" : "sell_on"));
   eventForm.schedule.value = data.schedule || "";
   eventForm.time.value = data.time || "";
   eventForm.location.value = data.location || "";
@@ -1914,6 +1975,7 @@ function resetForm() {
   editingSlug = null;
   eventForm.reset();
   eventForm.status.value = "draft";
+  setTicketStatus("sell_on");
   eventForm.priceRegular.value = 0;
   eventForm.priceVip.value = 0;
   eventForm.capacity.value = "";
@@ -1937,11 +1999,14 @@ async function saveEvent(e, { forceNew = false, redirectToPublic = false } = {})
   }
   const priceRegular = Number(eventForm.priceRegular.value) || 0;
   const priceVip = eventForm.priceVip.value ? Number(eventForm.priceVip.value) : null;
+  const ticketStatus = getTicketStatus();
   const data = {
     slug,
     title: (eventForm.title.value || "").trim(),
     category: (eventForm.category.value || "").trim(),
     status: eventForm.status.value || "draft",
+    ticketStatus,
+    soldOut: ticketStatus === "sold_out",
     schedule: (eventForm.schedule.value || "").trim(),
     time: (eventForm.time.value || "").trim(),
     location: (eventForm.location.value || "").trim(),
@@ -2112,6 +2177,11 @@ exportEventsBtn?.addEventListener("click", exportEventsToCsv);
 exportOrdersBtn?.addEventListener("click", exportOrdersToExcel);
 eventForm?.addEventListener("submit", (ev) => saveEvent(ev));
 eventForm?.addEventListener("input", updatePreviewFromForm);
+ticketStatusButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    setTicketStatus(btn.dataset.ticketStatus);
+  });
+});
 uploadPosterBtn?.addEventListener("click", openUpload);
 createEventBtn?.addEventListener("click", () => {
   saveEvent(null, { forceNew: true, redirectToPublic: true });
@@ -2157,6 +2227,7 @@ tableBody?.addEventListener("click", (e) => {
   const editBtn = e.target.closest("[data-edit]");
   const delBtn = e.target.closest("[data-delete]");
   const dupBtn = e.target.closest("[data-duplicate]");
+  const ticketToggleBtn = e.target.closest("[data-ticket-toggle]");
 
   if (editBtn) {
     const slug = editBtn.dataset.edit;
@@ -2185,6 +2256,10 @@ tableBody?.addEventListener("click", (e) => {
       fillForm(clone);
       goToManagePage();
     }
+  }
+
+  if (ticketToggleBtn) {
+    updateTicketStatus(ticketToggleBtn.dataset.ticketToggle, ticketToggleBtn.dataset.ticketNext);
   }
 });
 

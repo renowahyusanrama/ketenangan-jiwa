@@ -39,6 +39,29 @@ function formatCurrency(amount) {
   return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(n);
 }
 
+function isEventSoldOut(event) {
+  if (!event) return false;
+  if (event.soldOut === true || event.isSoldOut === true || event.ticketClosed === true) return true;
+  const statusText = (event.ticketStatus || event.salesStatus || event.registrationStatus || "")
+    .toString()
+    .toLowerCase();
+  if (["sold_out", "soldout", "closed"].includes(statusText)) return true;
+
+  const capacity = Number(event.capacity || 0);
+  const seatsUsed = Number(event.seatsUsed || 0);
+  if (capacity > 0 && seatsUsed >= capacity) return true;
+
+  const quotaRegular = Number(event.quotaRegular || 0);
+  const quotaVip = Number(event.quotaVip || 0);
+  const seatsUsedRegular = Number(event.seatsUsedRegular || 0);
+  const seatsUsedVip = Number(event.seatsUsedVip || 0);
+  const soldOutRegular = quotaRegular > 0 && seatsUsedRegular >= quotaRegular;
+  const soldOutVip = quotaVip > 0 && seatsUsedVip >= quotaVip;
+  const priceVip = event.priceVip != null ? Number(event.priceVip) : 0;
+  const hasVip = priceVip > 0 || quotaVip > 0;
+  return hasVip ? soldOutRegular && soldOutVip : soldOutRegular;
+}
+
 async function loadEvents() {
   cardsEl.innerHTML = '<p class="muted">Memuat event...</p>';
   const ref = collection(db, "events");
@@ -77,10 +100,12 @@ function renderList(data) {
   cardsEl.innerHTML = list
     .map((e) => {
       const slug = e.slug || e.id;
+      const soldOut = isEventSoldOut(e);
       return `
         <article class="card">
-          <div class="card-media">
+          <div class="card-media${soldOut ? " has-sold-out" : ""}">
             <img src="${e.imageUrl || "./images/placeholder.jpg"}" alt="${e.title || ""}" />
+            ${soldOut ? '<span class="sold-out-badge">SOLD OUT</span>' : ""}
             ${e.category ? `<span class="chip chip-green">${e.category}</span>` : ""}
           </div>
           <div class="card-body">

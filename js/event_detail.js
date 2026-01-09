@@ -544,12 +544,24 @@ function initPaymentForm(event) {
   const phoneInput = form?.querySelector('input[name="phone"]');
   const referralInput = form?.querySelector('input[name="referralCode"]');
   const referralHint = document.getElementById("referralHint");
+  const statusText = (event.ticketStatus || event.salesStatus || event.registrationStatus || "")
+    .toString()
+    .toLowerCase();
+  const soldOutByStatus =
+    event.soldOut === true ||
+    event.isSoldOut === true ||
+    event.ticketClosed === true ||
+    ["sold_out", "soldout", "closed"].includes(statusText);
+  const capacity = Number(event.capacity || 0);
+  const seatsUsedTotal = Number(event.seatsUsed || 0);
+  const soldOutByCapacity = capacity > 0 && seatsUsedTotal >= capacity;
+  const soldOutBase = soldOutByStatus || soldOutByCapacity;
   const quotaRegular = Number(event.quotaRegular || 0);
   const quotaVip = Number(event.quotaVip || 0);
   const seatsUsedRegular = Number(event.seatsUsedRegular || 0);
   const seatsUsedVip = Number(event.seatsUsedVip || 0);
-  const soldOutRegular = quotaRegular > 0 && seatsUsedRegular >= quotaRegular;
-  const soldOutVip = quotaVip > 0 && seatsUsedVip >= quotaVip;
+  const soldOutRegular = soldOutBase || (quotaRegular > 0 && seatsUsedRegular >= quotaRegular);
+  const soldOutVip = soldOutBase || (quotaVip > 0 && seatsUsedVip >= quotaVip);
 
   const formStorageKey = `${FORM_KEY_PREFIX}${event.id}`;
   const orderStorageKey = `${ORDER_KEY_PREFIX}${event.id}`;
@@ -558,6 +570,8 @@ function initPaymentForm(event) {
 
   const priceRegular = Number(event.priceRegular || 0);
   const priceVip = event.priceVip != null ? Number(event.priceVip) : null;
+  const hasVipOption = priceVip != null || quotaVip > 0;
+  const soldOutAll = soldOutBase || (soldOutRegular && (soldOutVip || !hasVipOption));
   const savedForm = readFromStorage(formStorageKey) || {};
   let selectedTicket = savedForm.ticketType || (priceRegular ? "regular" : priceVip ? "vip" : "regular");
   if (soldOutRegular && !soldOutVip && priceVip) selectedTicket = "vip";
@@ -594,6 +608,15 @@ function initPaymentForm(event) {
 
   function setPayLabel(label) {
     if (payBtn) payBtn.textContent = label;
+  }
+
+  function setSoldOutState() {
+    setHint("Semua tiket sudah habis.", "warning");
+    payBtn?.classList.add("sold-out");
+    setPayLabel("SOLD OUT");
+    payBtn?.setAttribute("disabled", "true");
+    methodButtons.forEach((btn) => btn.setAttribute("disabled", "true"));
+    [nameInput, emailInput, phoneInput, referralInput].forEach((el) => el?.setAttribute("disabled", "true"));
   }
 
   function normalizeReferralCode(value) {
@@ -706,6 +729,10 @@ function initPaymentForm(event) {
   if (referralInput && savedForm.referralCode) referralInput.value = savedForm.referralCode;
 
   function updateTicketSelection(type) {
+    if (soldOutAll) {
+      setSoldOutState();
+      return;
+    }
     if ((type === "vip" && soldOutVip) || (type !== "vip" && soldOutRegular)) {
       setHint("Tiket yang dipilih sudah habis. Pilih tipe lain.", "warning");
       return;
@@ -856,10 +883,8 @@ function initPaymentForm(event) {
   ticketRegularBtn?.addEventListener("click", () => updateTicketSelection("regular"));
   ticketVipBtn?.addEventListener("click", () => updateTicketSelection("vip"));
   updateTicketSelection(selectedTicket);
-  if (soldOutRegular && soldOutVip) {
-    setHint("Semua tiket sudah habis.", "warning");
-    payBtn.disabled = true;
-    methodButtons.forEach((btn) => btn.setAttribute("disabled", "true"));
+  if (soldOutAll) {
+    setSoldOutState();
   }
 
   function selectMethodButton(preferredMethod, preferredBank) {
@@ -1184,6 +1209,12 @@ function normalizeEvent(raw, slug) {
     priceRegular: Number(raw.priceRegular ?? raw.amount ?? 0) || 0,
     priceVip: raw.priceVip != null ? Number(raw.priceVip) : null,
     priceLabel: raw.priceLabel || (Number(raw.priceRegular ?? raw.amount) ? null : "Gratis"),
+    ticketStatus: raw.ticketStatus || "",
+    salesStatus: raw.salesStatus || "",
+    registrationStatus: raw.registrationStatus || "",
+    soldOut: raw.soldOut ?? false,
+    isSoldOut: raw.isSoldOut ?? false,
+    ticketClosed: raw.ticketClosed ?? false,
     description: raw.description || "",
     highlights: raw.highlights || [],
     agenda: raw.agenda || [],
