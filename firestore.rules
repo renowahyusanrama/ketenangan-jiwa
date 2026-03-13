@@ -1,0 +1,34 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() { return request.auth != null && request.auth.token.admin == true; }
+
+    match /events/{id} {
+      // Admin boleh baca semua; publik hanya yang published
+      allow read: if isAdmin() || resource.data.status == 'published';
+      allow write: if isAdmin();
+    }
+
+    match /orders/{id} {
+      allow read: if isAdmin() || (request.auth != null && resource.data.customer.email == request.auth.token.email);
+      allow update: if isAdmin(); // dipakai admin dashboard untuk set verified/checkedIn
+      allow delete: if isAdmin(); // Allow admin to delete transactions
+      allow create: if false;
+    }
+
+    match /referrals/{code} {
+      // Allow public to check specific code (get), but not list all (list)
+      allow get: if true;
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+      
+      match /uses/{useId} {
+        allow read, write: if isAdmin();
+      }
+    }
+
+    match /payments/{id} { allow read, write: if false; }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}

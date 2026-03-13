@@ -1,1601 +1,1930 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin Dashboard | ketenangan jiwa</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Dashboard | ketenangan jiwa</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/coolvetica">
-  <link href="https://fonts.googleapis.com/css2?family=Pacifico:wght@400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="css/admin_preview.css" />
-  <link rel="icon" type="image/png" href="images/logo.png" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/coolvetica" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pacifico:wght@400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="css/admin_preview.css" />
+    <link rel="icon" type="image/png" href="images/logo.png" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --panel: #ffffff;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --muted: #64748b;
-      --primary: #2563eb;
-      --primary-dark: #1d4ed8;
-      --danger: #ef4444;
-      --danger-dark: #dc2626;
-      --success: #16a34a;
-      --success-dark: #15803d;
-      --card: #f1f5f9;
-      --highlight: rgba(37, 99, 235, 0.08);
-      --shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
-      --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.1);
-      --font-heading: 'Coolvetica', Arial, sans-serif;
-      --font-subheading: 'Neulis Cursive Bold','Pacifico',cursive;
-      --font-body: Arial, sans-serif;
-    }
-    * { 
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: var(--font-body);
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      line-height: 1.6;
-    }
-    h1 { font-family: var(--font-heading); }
-    h2, h3 { font-family: var(--font-subheading); }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-    .admin-shell{
-      display:grid;
-      grid-template-columns:260px 1fr;
-      min-height:100vh;
-      background:var(--bg);
-    }
-    .sidebar{
-      background:#0b63c5;
-      color:#f8fafc;
-      padding:24px 20px;
-      display:flex;
-      flex-direction:column;
-      gap:24px;
-      box-shadow:var(--shadow-lg);
-      z-index:2;
-      position:sticky;
-      top:0;
-      height:100vh;
-    }
-    .sidebar-brand{
-      background:linear-gradient(135deg, #0d6ee8, #0a4fb8);
-      border-radius:16px;
-      padding:16px 14px;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      box-shadow:var(--shadow);
-    }
-    .sidebar-brand strong{
-      font-family: var(--font-heading);
-    }
-    .sidebar-brand img{
-      width:44px;
-      height:44px;
-      object-fit:contain;
-      background:#fff;
-      border-radius:12px;
-      padding:6px;
-    }
-    .brand-meta{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-      line-height:1.3;
-    }
-    .brand-name{
-      font-weight:800;
-      font-size:1rem;
-      letter-spacing:0.4px;
-    }
-    .brand-role{
-      font-size:0.85rem;
-      color:#dbeafe;
-    }
-    .sidebar-nav{
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .nav-link{
-      width:100%;
-      text-align:left;
-      border:1px solid rgba(255,255,255,0.15);
-      background:rgba(255,255,255,0.08);
-      color:#f8fafc;
-      padding:12px 14px;
-      border-radius:12px;
-      font-weight:600;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      box-shadow:none;
-    }
-    .nav-link:hover{
-      background:rgba(255,255,255,0.16);
-      transform:translateY(0);
-    }
-    .nav-link.active{
-      background:#ffffff;
-      color:#0f172a;
-      border:1px solid #dbeafe;
-      box-shadow:var(--shadow);
-    }
-    .admin-main{
-      background:var(--bg);
-      display:flex;
-      flex-direction:column;
-      min-height:100vh;
-    }
-    .topbar{
-      display:flex;
-      align-items:center;
-      gap:16px;
-      padding:16px 28px;
-      background:#fff;
-      border-bottom:1px solid #eef1f7;
-      box-shadow:0 10px 28px rgba(15,23,42,0.04);
-      position:sticky;
-      top:0;
-      z-index:10;
-    }
-    .topbar-title{
-      font-weight:700;
-      font-size:1.1rem;
-      color:var(--text);
-    }
-    .topbar-actions{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      flex-wrap:wrap;
-      position:relative;
-      margin-left:auto;
-      justify-content:flex-end;
-    }
-    .pill.user-pill{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      max-width:340px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-      background:#e9f0ff;
-      color:#4b5f83;
-      padding:10px 16px;
-      border-radius:999px;
-      border:1px solid #d5e2ff;
-      box-shadow:0 12px 32px rgba(46,91,255,0.12);
-      font-weight:700;
-      letter-spacing:0.01em;
-      font-size:0.95rem;
-      line-height:1.2;
-    }
-    .logout-btn{
-      background:linear-gradient(180deg, #f9fbff 0%, #f3f6ff 100%);
-      color:#0f244a;
-      border:1px solid #e3e9f6;
-      border-radius:12px;
-      padding:10px 18px;
-      font-weight:700;
-      box-shadow:0 12px 28px rgba(21,35,82,0.12);
-      transition:all 0.2s ease;
-      min-width:96px;
-    }
-    .logout-btn:hover{
-      background:linear-gradient(180deg, #eef3ff 0%, #e7edfb 100%);
-      transform:translateY(-2px);
-      box-shadow:0 14px 32px rgba(21,35,82,0.16);
-    }
-    .icon-square{
-      width:42px;
-      height:42px;
-      border-radius:12px;
-      border:1px solid #e3e9f6;
-      background:linear-gradient(180deg, #f9fbff 0%, #f3f6ff 100%);
-      display:grid;
-      place-items:center;
-      box-shadow:0 12px 28px rgba(21,35,82,0.12);
-      padding:0;
-      cursor:pointer;
-      transition:all 0.2s ease;
-    }
-    .icon-square img{
-      width:24px;
-      height:24px;
-      object-fit:contain;
-    }
-    .icon-square i{
-      color:#0f244a;
-      font-size:18px;
-    }
-    .icon-square:hover{
-      transform:translateY(-2px);
-      box-shadow:0 14px 32px rgba(21,35,82,0.16);
-      background:linear-gradient(180deg, #eef3ff 0%, #e7edfb 100%);
-    }
-    .mobile-menu-btn{
-      display:none;
-      width:42px;
-      height:42px;
-      border-radius:12px;
-      border:1px solid rgba(15,23,42,0.12);
-      background:#0b63c5;
-      color:#f8fafc;
-      align-items:center;
-      justify-content:center;
-      box-shadow:var(--shadow);
-      padding:0;
-      flex-shrink:0;
-    }
-    .mobile-menu-btn:hover{
-      background:#0a57ad;
-    }
-    .mobile-menu-btn.open{
-      background:#094fa5;
-      border-color:rgba(255,255,255,0.2);
-    }
-    .mobile-nav-panel{
-      position:absolute;
-      top:calc(100% + 10px);
-      right:0;
-      background:#0b63c5;
-      border:1px solid rgba(255,255,255,0.14);
-      border-radius:14px;
-      padding:12px;
-      box-shadow:var(--shadow-lg);
-      display:none;
-      flex-direction:column;
-      gap:8px;
-      min-width:220px;
-      z-index:15;
-    }
-    .mobile-nav-panel.open{
-      display:flex;
-    }
-    .mobile-nav-panel .nav-link{
-      background:rgba(255,255,255,0.08);
-      border:1px solid rgba(255,255,255,0.16);
-      color:#f8fafc;
-      width:100%;
-      box-shadow:none;
-    }
-    .mobile-nav-panel .nav-link.active{
-      background:#fff;
-      color:#0f172a;
-      border-color:#dbeafe;
-      box-shadow:var(--shadow);
-    }
-    .main-scroll{
-      padding:24px;
-      flex:1;
-    }
-    .page{
-      display:none;
-    }
-    .page.page-active{
-      display:block;
-    }
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 24px;
-      box-shadow: var(--shadow);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .panel:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-    h1, h2, h3 { 
-      margin: 0 0 16px; 
-      font-weight: 600;
-    }
-    h1 { font-size: 1.8rem; }
-    h2 { font-size: 1.5rem; }
-    h3 { font-size: 1.2rem; }
-    .muted { 
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-    .flex { 
-      display: flex; 
-      gap: 12px; 
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .filter-bar{
-      gap:8px;
-      align-items:center;
-      flex-wrap:wrap;
-    }
-    .flex-between {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    button, input, select, textarea {
-      font-family: inherit;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #fff;
-      color: var(--text);
-      padding: 12px 16px;
-      transition: all 0.2s;
-    }
-    button {
-      cursor: pointer;
-      border: none;
-      background: var(--primary);
-      color: white;
-      font-weight: 600;
-      padding: 10px 20px;
-      border-radius: 8px;
-      transition: all 0.2s;
-      box-shadow: var(--shadow);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    button:hover { 
-      background: var(--primary-dark);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow);
-    }
-    button:active {
-      transform: translateY(0);
-    }
-    button:disabled { 
-      opacity: 0.5; 
-      cursor: not-allowed; 
-      transform: none; 
-    }
-    .danger { 
-      background: var(--danger); 
-      color: #fff; 
-      box-shadow: var(--shadow);
-    }
-    .danger:hover {
-      background: var(--danger-dark);
-    }
-    .success-btn{
-      background: var(--success);
-      color:#fff;
-      box-shadow: var(--shadow);
-    }
-    .success-btn:hover{
-      background: var(--success-dark);
-    }
-    .outline { 
-      background: transparent; 
-      color: var(--text);
-      border: 1px solid var(--border);
-      box-shadow: none;
-    }
-    .outline:hover {
-      background: rgba(15, 23, 42, 0.04);
-    }
-    .status-toggle{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-    }
-    .status-toggle button{
-      flex:1;
-      min-width:120px;
-    }
-    .status-toggle .toggle-sell-on.active{
-      background: var(--success);
-      color: #fff;
-      border-color: var(--success-dark);
-      box-shadow: var(--shadow);
-    }
-    .status-toggle .toggle-sold-out.active{
-      background: var(--danger);
-      color: #fff;
-      border-color: var(--danger-dark);
-      box-shadow: var(--shadow);
-    }
-    .ticket-badge{
-      margin-left:6px;
-    }
-    form .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
-    label { 
-      display: block; 
-      font-weight: 600; 
-      margin-bottom: 8px;
-      color: var(--text);
-      font-size: 0.9rem;
-    }
-    input, select, textarea {
-      width: 100%;
-    }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-    textarea { 
-      min-height: 100px; 
-      resize: vertical;
-    }
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-      margin-top: 16px;
-    }
-    .table th, .table td {
-      padding: 12px;
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-      vertical-align: middle;
-      word-break: break-word;
-    }
-    .table th {
-      background: #f8fafc;
-      font-weight: 600;
-      color: var(--text);
-    }
-    .table tr:hover {
-      background: #f1f5f9;
-    }
-    /* Orders table specific sizing to keep status badges readable */
-    #ordersTable {
-      table-layout: auto;
-    }
-    #ordersTable th.status-col,
-    #ordersTable td.status-col {
-      min-width: 120px;
-      white-space: nowrap;
-    }
-    #ordersTable th.checkin-col,
-    #ordersTable td.checkin-col {
-      min-width: 130px;
-    }
-    #ordersTable td.status-col .badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 90px;
-      padding: 6px 12px;
-      white-space: nowrap;
-    }
-    .badge { 
-      padding: 4px 10px; 
-      border-radius: 999px; 
-      font-size: 12px; 
-      font-weight: 600;
-      display: inline-block;
-    }
-    .badge.green { 
-      background: rgba(34,197,94,0.2); 
-      color: #4ade80; 
-    }
-    .badge.yellow {
-      background: rgba(234,179,8,0.2);
-      color: #fbbf24;
-    }
-    .badge.red {
-      background: rgba(248,113,113,0.2);
-      color: #f87171;
-    }
-    .badge.gray { 
-      background: #e2e8f0; 
-      color: #475569; 
-    }
-    .badge.blue {
-      background: rgba(59,130,246,0.2);
-      color: #60a5fa;
-    }
-
-    .stats-panel {
-      padding: 18px 24px;
-      background: var(--panel);
-      border:1px solid var(--border);
-      box-shadow: var(--shadow);
-    }
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-top: 16px;
-    }
-    .stat-card {
-      background: #f8fafc;
-      border-radius: 16px;
-      padding: 18px;
-      border: 1px solid var(--border);
-    }
-    .stat-label {
-      display: block;
-      font-size: 0.85rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-    .stat-value {
-      margin: 8px 0;
-      font-size: 1.9rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-    .stats-filter {
-      display: flex;
-      flex-direction: column;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-    .stats-filter label {
-      margin-bottom: 4px;
-      font-size: 0.75rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-    }
-    .stats-filter select {
-      background: #fff;
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 999px;
-      padding: 8px 14px;
-      min-width: 180px;
-    }
-    .stat-status-list {
-      list-style: none;
-      margin: 18px 0 0;
-      padding: 0;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .stat-status-list li {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.85rem;
-      color: var(--text);
-      background: #f8fafc;
-      border-radius: 999px;
-      padding: 8px 14px;
-      border: 1px solid var(--border);
-    }
-    .stat-status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      display: inline-block;
-      background: var(--muted);
-    }
-    .stat-updated {
-      margin-top: 12px;
-      font-size: 0.9rem;
-    }
-    .stats-charts{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
-      gap:16px;
-      margin-top:18px;
-      align-items:stretch;
-    }
-    .chart-card{
-      background:#f8fafc;
-      border-radius:16px;
-      padding:16px;
-      border:1px solid var(--border);
-      box-shadow:0 10px 24px rgba(0,0,0,0.04);
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-    .chart-card h3{
-      margin:0;
-      font-size:1rem;
-      font-weight:700;
-      color:var(--text);
-    }
-    .chart-card p{
-      margin:0;
-      color:var(--muted);
-      font-size:0.9rem;
-    }
-    .chart-shell{
-      position:relative;
-      min-height:220px;
-    }
-    .chart-shell canvas{
-      width:100% !important;
-      height:220px !important;
-    }
-
-    .status-text { 
-      font-size: 14px; 
-    }
-    .pill {
-      padding: 8px 16px;
-      border-radius: 999px;
-      background: var(--highlight);
-      border: 1px solid var(--border);
-      font-size: 0.9rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      line-height: 1.4;
-    }
-    .preview {
-      width: 100%;
-      max-width: 320px;
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      overflow: hidden;
-      background: var(--card);
-      box-shadow: var(--shadow-lg);
-    }
-    .preview img { 
-      display: block; 
-      width: 100%; 
-      height: auto; 
-    }
-    .hidden { 
-      display: none !important; 
-    }
-    
-    /* Custom styles for admin layout */
-    .admin-layout {
-      display: grid;
-      grid-template-columns: 1.3fr 1fr;
-      gap: 20px;
-      align-items: start;
-    }
-    
-    /* Preview Card Styles */
-    .preview-card {
-      background: var(--panel);
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      position: sticky;
-      top: 90px;
-    }
-    .preview-media {
-      position: relative;
-      height: 200px;
-      overflow: hidden;
-    }
-    .preview-media img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .preview-chip {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      background: var(--primary);
-      color: white;
-      padding: 4px 12px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .preview-body {
-      padding: 20px;
-    }
-    .preview-title {
-      font-size: 1.2rem;
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-    .preview-tagline {
-      color: var(--muted);
-      font-size: 0.9rem;
-      margin-bottom: 16px;
-    }
-    .preview-meta {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    .preview-meta li {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
-      font-size: 0.9rem;
-    }
-    .preview-meta i {
-      width: 16px;
-      color: var(--primary);
-    }
-    .preview-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 20px;
-      border-top: 1px solid var(--border);
-    }
-    .preview-price {
-      font-weight: 600;
-      color: var(--success);
-    }
-    .preview-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .preview-btn:hover {
-      background: var(--primary-dark);
-    }
-    
-    /* Form Actions */
-    .form-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 24px;
-      padding-top: 16px;
-      border-top: 1px solid var(--border);
-    }
-    
-    /* Table Actions */
-    .table-actions {
-      display: flex;
-      gap: 8px;
-    }
-    .btn-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0;
-    }
-    
-    /* Status Indicators */
-    .status-indicator {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-    .status-dot.green {
-      background: var(--success);
-    }
-    .status-dot.gray {
-      background: var(--muted);
-    }
-    
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .fade-in {
-      animation: fadeIn 0.3s ease-out;
-    }
-    
-    /* Responsive Design */
-    @media (max-width: 1024px) {
-      .admin-shell{
-        grid-template-columns:1fr;
+    <style>
+      :root {
+        --bg: #f8fafc;
+        --panel: #ffffff;
+        --border: #e2e8f0;
+        --text: #0f172a;
+        --muted: #64748b;
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --danger: #ef4444;
+        --danger-dark: #dc2626;
+        --success: #16a34a;
+        --success-dark: #15803d;
+        --card: #f1f5f9;
+        --highlight: rgba(37, 99, 235, 0.08);
+        --shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+        --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.1);
+        --font-heading: "Coolvetica", Arial, sans-serif;
+        --font-subheading: "Neulis Cursive Bold", "Pacifico", cursive;
+        --font-body: Arial, sans-serif;
       }
-      .sidebar{
-        flex-direction:row;
-        align-items:center;
-        gap:16px;
-        position:static;
-        height:auto;
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
-      .sidebar-nav{
-        flex-direction:row;
-        flex-wrap:wrap;
-        width:100%;
+      body {
+        font-family: var(--font-body);
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        line-height: 1.6;
       }
-      .sidebar-nav .nav-link{
-        width:auto;
-        flex:1 1 45%;
+      h1 {
+        font-family: var(--font-heading);
       }
-      .admin-layout {
-        grid-template-columns: 1fr;
+      h2,
+      h3 {
+        font-family: var(--font-subheading);
       }
-      .preview-card {
-        position: static;
-        margin-top: 24px;
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
       }
-    }
-
-    @media (max-width: 960px) {
-      .sidebar{
-        display:none;
+      .admin-shell {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        min-height: 100vh;
+        background: var(--bg);
       }
-      .admin-shell{
-        grid-template-columns:1fr;
+      .sidebar {
+        background: #0b63c5;
+        color: #f8fafc;
+        padding: 24px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        box-shadow: var(--shadow-lg);
+        z-index: 2;
+        position: sticky;
+        top: 0;
+        height: 100vh;
       }
-      .mobile-menu-btn{
-        display:inline-flex;
+      .sidebar-brand {
+        background: linear-gradient(135deg, #0d6ee8, #0a4fb8);
+        border-radius: 16px;
+        padding: 16px 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: var(--shadow);
       }
-      .topbar-actions{
-        width:100%;
-        justify-content:flex-start;
-        margin-left:0;
+      .sidebar-brand strong {
+        font-family: var(--font-heading);
       }
-    }
-    
-    @media (max-width: 720px) {
-      .topbar { 
-        flex-direction: column; 
-        align-items: flex-start; 
-        gap: 12px; 
-        padding: 16px 18px;
+      .sidebar-brand img {
+        width: 44px;
+        height: 44px;
+        object-fit: contain;
+        background: #fff;
+        border-radius: 12px;
+        padding: 6px;
       }
-      .container { 
-        padding: 16px; 
+      .brand-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        line-height: 1.3;
       }
-      .topbar-actions{
-        width:100%;
-        display:grid;
-        grid-template-columns:auto 1fr auto;
-        align-items:center;
-        gap:10px;
-        margin-left:0;
-        justify-content:flex-start;
+      .brand-name {
+        font-weight: 800;
+        font-size: 1rem;
+        letter-spacing: 0.4px;
       }
-      .topbar-actions > *{
-        min-width:0;
+      .brand-role {
+        font-size: 0.85rem;
+        color: #dbeafe;
       }
-      .pill{
-        width:100%;
-        justify-content:flex-start;
+      .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
       }
-      #loginBtn,
-      #logoutBtn{
-        justify-self:end;
+      .nav-link {
+        width: 100%;
+        text-align: left;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.08);
+        color: #f8fafc;
+        padding: 12px 14px;
+        border-radius: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: none;
       }
-      .form .grid {
-        grid-template-columns: 1fr;
+      .nav-link:hover {
+        background: rgba(255, 255, 255, 0.16);
+        transform: translateY(0);
       }
-      .table {
-        font-size: 12px;
+      .nav-link.active {
+        background: #ffffff;
+        color: #0f172a;
+        border: 1px solid #dbeafe;
+        box-shadow: var(--shadow);
       }
-      .table th, .table td {
-        padding: 8px;
+      .admin-main {
+        background: var(--bg);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
       }
-      .btn-icon {
-        width: 28px;
-        height: 28px;
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 28px;
+        background: #fff;
+        border-bottom: 1px solid #eef1f7;
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
+        position: sticky;
+        top: 0;
+        z-index: 10;
       }
-      .mobile-nav-panel{
-        left:0;
-        right:auto;
-        top:calc(100% + 6px);
-        width:72vw;
-        max-width:260px;
-        min-width:210px;
+      .topbar-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--text);
       }
-      .main-scroll{
-        padding:16px;
+      .topbar-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        position: relative;
+        margin-left: auto;
+        justify-content: flex-end;
+      }
+      .pill.user-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        max-width: 340px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        background: #e9f0ff;
+        color: #4b5f83;
+        padding: 10px 16px;
+        border-radius: 999px;
+        border: 1px solid #d5e2ff;
+        box-shadow: 0 12px 32px rgba(46, 91, 255, 0.12);
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        font-size: 0.95rem;
+        line-height: 1.2;
+      }
+      .logout-btn {
+        background: linear-gradient(180deg, #f9fbff 0%, #f3f6ff 100%);
+        color: #0f244a;
+        border: 1px solid #e3e9f6;
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-weight: 700;
+        box-shadow: 0 12px 28px rgba(21, 35, 82, 0.12);
+        transition: all 0.2s ease;
+        min-width: 96px;
+      }
+      .logout-btn:hover {
+        background: linear-gradient(180deg, #eef3ff 0%, #e7edfb 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 14px 32px rgba(21, 35, 82, 0.16);
+      }
+      .icon-square {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid #e3e9f6;
+        background: linear-gradient(180deg, #f9fbff 0%, #f3f6ff 100%);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 12px 28px rgba(21, 35, 82, 0.12);
+        padding: 0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .icon-square img {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+      }
+      .icon-square i {
+        color: #0f244a;
+        font-size: 18px;
+      }
+      .icon-square:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 32px rgba(21, 35, 82, 0.16);
+        background: linear-gradient(180deg, #eef3ff 0%, #e7edfb 100%);
+      }
+      .mobile-menu-btn {
+        display: none;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        border: 1px solid rgba(15, 23, 42, 0.12);
+        background: #0b63c5;
+        color: #f8fafc;
+        align-items: center;
+        justify-content: center;
+        box-shadow: var(--shadow);
+        padding: 0;
+        flex-shrink: 0;
+      }
+      .mobile-menu-btn:hover {
+        background: #0a57ad;
+      }
+      .mobile-menu-btn.open {
+        background: #094fa5;
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+      .mobile-nav-panel {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        background: #0b63c5;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 14px;
+        padding: 12px;
+        box-shadow: var(--shadow-lg);
+        display: none;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 220px;
+        z-index: 15;
+      }
+      .mobile-nav-panel.open {
+        display: flex;
+      }
+      .mobile-nav-panel .nav-link {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        color: #f8fafc;
+        width: 100%;
+        box-shadow: none;
+      }
+      .mobile-nav-panel .nav-link.active {
+        background: #fff;
+        color: #0f172a;
+        border-color: #dbeafe;
+        box-shadow: var(--shadow);
+      }
+      .main-scroll {
+        padding: 24px;
+        flex: 1;
+      }
+      .page {
+        display: none;
+      }
+      .page.page-active {
+        display: block;
       }
       .panel {
-        padding:18px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: var(--shadow);
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
       }
-      .flex-between{
-        flex-direction:column;
-        align-items:flex-start;
-        gap:12px;
+      .panel:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
       }
-      .stats-grid{
-        grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      h1,
+      h2,
+      h3 {
+        margin: 0 0 16px;
+        font-weight: 600;
       }
-      .stat-value{
-        font-size:1.6rem;
+      h1 {
+        font-size: 1.8rem;
       }
-      .topbar-actions{
-        grid-template-columns:auto minmax(0,1fr) auto;
+      h2 {
+        font-size: 1.5rem;
       }
-      .filter-bar{
-        display:grid;
-        grid-template-columns:1fr;
-        width:100%;
-        gap:10px;
+      h3 {
+        font-size: 1.2rem;
       }
-      .filter-bar select,
-      .filter-bar input,
-      .filter-bar button{
-        width:100%;
-        min-width:0;
+      .muted {
+        color: var(--muted);
+        font-size: 0.9rem;
       }
-      #orderSearch{
-        width:100% !important;
+      .flex {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
       }
-      #orderStatusFilter,
-      #orderEventFilter{
-        min-width:0 !important;
+      .filter-bar {
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
       }
-      #toggleQrPanel,
-      #qrStopBtn,
-      #refreshOrdersBtn{
-        justify-content:center;
+      .flex-between {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
       }
-      #qrPanel .flex{
-        flex-direction:column;
-        align-items:stretch;
+      button,
+      input,
+      select,
+      textarea {
+        font-family: inherit;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #fff;
+        color: var(--text);
+        padding: 12px 16px;
+        transition: all 0.2s;
       }
-      #qrInput{
-        min-width:0 !important;
-        width:100% !important;
+      button {
+        cursor: pointer;
+        border: none;
+        background: var(--primary);
+        color: white;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.2s;
+        box-shadow: var(--shadow);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      button:hover {
+        background: var(--primary-dark);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+      button:active {
+        transform: translateY(0);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .danger {
+        background: var(--danger);
+        color: #fff;
+        box-shadow: var(--shadow);
+      }
+      .danger:hover {
+        background: var(--danger-dark);
+      }
+      .success-btn {
+        background: var(--success);
+        color: #fff;
+        box-shadow: var(--shadow);
+      }
+      .success-btn:hover {
+        background: var(--success-dark);
+      }
+      .outline {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+        box-shadow: none;
+      }
+      .outline:hover {
+        background: rgba(15, 23, 42, 0.04);
+      }
+      .status-toggle {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .status-toggle button {
+        flex: 1;
+        min-width: 120px;
+      }
+      .status-toggle .toggle-sell-on.active {
+        background: var(--success);
+        color: #fff;
+        border-color: var(--success-dark);
+        box-shadow: var(--shadow);
+      }
+      .status-toggle .toggle-sold-out.active {
+        background: var(--danger);
+        color: #fff;
+        border-color: var(--danger-dark);
+        box-shadow: var(--shadow);
+      }
+      .ticket-badge {
+        margin-left: 6px;
+      }
+      form .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+      }
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--text);
+        font-size: 0.9rem;
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        margin-top: 16px;
+      }
+      .table th,
+      .table td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: middle;
+        word-break: break-word;
+      }
+      .table th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: var(--text);
+      }
+      .table tr:hover {
+        background: #f1f5f9;
+      }
+      /* Orders table specific sizing to keep status badges readable */
+      #ordersTable {
+        table-layout: auto;
       }
       #ordersTable th.status-col,
-      #ordersTable td.status-col,
+      #ordersTable td.status-col {
+        min-width: 120px;
+        white-space: nowrap;
+      }
       #ordersTable th.checkin-col,
-      #ordersTable td.checkin-col{
-        min-width:0;
+      #ordersTable td.checkin-col {
+        min-width: 130px;
       }
-      #ordersTable td.status-col .badge{
-        min-width:0;
-        width:auto;
+      #ordersTable td.status-col .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 90px;
+        padding: 6px 12px;
+        white-space: nowrap;
       }
-      #ordersTable thead,
-      #eventsTable thead,
-      #referralTable thead{
-        display:none;
+      .badge {
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
       }
-      #ordersTable, 
-      #ordersTable tbody,
-      #ordersTable tr,
-      #ordersTable td,
-      #eventsTable,
-      #eventsTable tbody,
-      #eventsTable tr,
-      #eventsTable td,
-      #referralTable,
-      #referralTable tbody,
-      #referralTable tr,
-      #referralTable td{
-        display:block;
-        width:100%;
+      .badge.green {
+        background: rgba(34, 197, 94, 0.2);
+        color: #4ade80;
       }
-      #ordersTable tbody tr,
-      #eventsTable tbody tr,
-      #referralTable tbody tr{
-        margin-bottom:12px;
-        padding:12px;
-        border:1px solid var(--border);
-        border-radius:12px;
-        background:var(--panel);
-        box-shadow:var(--shadow);
+      .badge.yellow {
+        background: rgba(234, 179, 8, 0.2);
+        color: #fbbf24;
       }
-      #ordersTable tbody tr td,
-      #eventsTable tbody tr td,
-      #referralTable tbody tr td{
-        padding:6px 0;
-        border-bottom:1px solid var(--border);
-        display:flex;
-        gap:8px;
-        align-items:flex-start;
-        word-break: normal;
-        overflow-wrap: anywhere;
+      .badge.red {
+        background: rgba(248, 113, 113, 0.2);
+        color: #f87171;
       }
-      #ordersTable tbody tr td:last-child,
-      #eventsTable tbody tr td:last-child,
-      #referralTable tbody tr td:last-child{
-        border-bottom:none;
+      .badge.gray {
+        background: #e2e8f0;
+        color: #475569;
       }
-      #ordersTable tbody tr td::before,
-      #eventsTable tbody tr td::before,
-      #referralTable tbody tr td::before{
-        content: attr(data-label);
-        font-weight:600;
+      .badge.blue {
+        background: rgba(59, 130, 246, 0.2);
+        color: #60a5fa;
+      }
+
+      .stats-panel {
+        padding: 18px 24px;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+      }
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+      }
+      .stat-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 18px;
+        border: 1px solid var(--border);
+      }
+      .stat-label {
+        display: block;
+        font-size: 0.85rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
         color: var(--muted);
-        min-width:110px;
-        text-transform: capitalize;
       }
-      #ordersTable tbody tr td[colspan],
-      #eventsTable tbody tr td[colspan],
-      #referralTable tbody tr td[colspan]{
-        display:block;
-        border-bottom:none;
-        padding:8px 0;
+      .stat-value {
+        margin: 8px 0;
+        font-size: 1.9rem;
+        font-weight: 700;
+        color: var(--text);
       }
-      #ordersTable tbody tr td[colspan]::before,
-      #eventsTable tbody tr td[colspan]::before,
-      #referralTable tbody tr td[colspan]::before{
-        content:"";
-        display:none;
+      .stats-filter {
+        display: flex;
+        flex-direction: column;
+        font-size: 0.85rem;
+        color: var(--muted);
       }
-      #eventsTable tbody tr td .table-actions,
-      #referralTable tbody tr td .table-actions{
-        width:100%;
-        display:flex;
-        flex-wrap:wrap;
-        gap:8px;
+      .stats-filter label {
+        margin-bottom: 4px;
+        font-size: 0.75rem;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
       }
-      #eventsTable tbody tr td .table-actions button,
-      #referralTable tbody tr td .table-actions button{
-        flex:1 1 45%;
-        min-width:120px;
+      .stats-filter select {
+        background: #fff;
+        border: 1px solid var(--border);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 8px 14px;
+        min-width: 180px;
       }
-    }
-</style>
-</head>
-<body>
-  <div class="admin-shell">
-    <aside class="sidebar">
-      <div class="sidebar-brand">
-        <img src="images/logokj.png" alt="ketenangan jiwa" />
-        <div class="brand-meta">
-          <span class="brand-name">ketenangan jiwa</span>
-          <span class="brand-role">Admin</span>
-        </div>
-      </div>
-      <nav class="sidebar-nav">
-        <button class="nav-link active" data-target="page-stats"><i class="fa-solid fa-chart-line"></i> Statistik</button>
-        <button class="nav-link" data-target="page-kelola"><i class="fa-regular fa-pen-to-square"></i> Kelola Event</button>
-        <button class="nav-link" data-target="page-daftar"><i class="fa-regular fa-calendar"></i> Daftar Event</button>
-        <button class="nav-link" data-target="page-transaksi"><i class="fa-solid fa-receipt"></i> Transaksi</button>
-        <button class="nav-link" data-target="page-referral"><i class="fa-solid fa-tag"></i> Referral</button>
-      </nav>
-    </aside>
+      .stat-status-list {
+        list-style: none;
+        margin: 18px 0 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .stat-status-list li {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: var(--text);
+        background: #f8fafc;
+        border-radius: 999px;
+        padding: 8px 14px;
+        border: 1px solid var(--border);
+      }
+      .stat-status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        background: var(--muted);
+      }
+      .stat-updated {
+        margin-top: 12px;
+        font-size: 0.9rem;
+      }
+      .stats-charts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+        margin-top: 18px;
+        align-items: stretch;
+      }
+      .chart-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 16px;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.04);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .chart-card h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .chart-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .chart-shell {
+        position: relative;
+        min-height: 220px;
+      }
+      .chart-shell canvas {
+        width: 100% !important;
+        height: 220px !important;
+      }
 
-    <div class="admin-main">
-      <div class="topbar">
-        <div class="topbar-title" id="pageTitle">Statistik Pesanan</div>
-        <div class="topbar-actions">
-          <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Buka menu dashboard" aria-expanded="false">
-            <i class="fa-solid fa-ellipsis-vertical"></i>
-          </button>
-          <span id="userInfo" class="pill user-pill hidden"></span>
-          <a class="icon-square home-btn" href="index.html" aria-label="Kembali ke Home">
-            <i class="fa-solid fa-house"></i>
-          </a>
-          <button id="loginBtn" class="icon-square profile-trigger" aria-label="Login dengan Google">
-            <img src="images/Profile.png" alt="Login">
-          </button>
-          <button id="logoutBtn" class="logout-btn hidden">Logout</button>
-          <div class="mobile-nav-panel" id="mobileNavPanel">
-            <button class="nav-link active" data-target="page-stats"><i class="fa-solid fa-chart-line"></i> Statistik</button>
-            <button class="nav-link" data-target="page-kelola"><i class="fa-regular fa-pen-to-square"></i> Kelola Event</button>
-            <button class="nav-link" data-target="page-daftar"><i class="fa-regular fa-calendar"></i> Daftar Event</button>
-            <button class="nav-link" data-target="page-transaksi"><i class="fa-solid fa-receipt"></i> Transaksi</button>
-            <button class="nav-link" data-target="page-referral"><i class="fa-solid fa-tag"></i> Referral</button>
+      .status-text {
+        font-size: 14px;
+      }
+      .pill {
+        padding: 8px 16px;
+        border-radius: 999px;
+        background: var(--highlight);
+        border: 1px solid var(--border);
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        line-height: 1.4;
+      }
+      .preview {
+        width: 100%;
+        max-width: 320px;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        overflow: hidden;
+        background: var(--card);
+        box-shadow: var(--shadow-lg);
+      }
+      .preview img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .hidden {
+        display: none !important;
+      }
+
+      /* Custom styles for admin layout */
+      .admin-layout {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+
+      /* Preview Card Styles */
+      .preview-card {
+        background: var(--panel);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        position: sticky;
+        top: 90px;
+      }
+      .preview-media {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+      }
+      .preview-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .preview-chip {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        background: var(--primary);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .preview-body {
+        padding: 20px;
+      }
+      .preview-title {
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      .preview-tagline {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+      }
+      .preview-meta {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .preview-meta li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+      }
+      .preview-meta i {
+        width: 16px;
+        color: var(--primary);
+      }
+      .preview-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-top: 1px solid var(--border);
+      }
+      .preview-price {
+        font-weight: 600;
+        color: var(--success);
+      }
+      .preview-btn {
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .preview-btn:hover {
+        background: var(--primary-dark);
+      }
+
+      /* Form Actions */
+      .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+      }
+
+      /* Table Actions */
+      .table-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .btn-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      }
+
+      /* Status Indicators */
+      .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .status-dot.green {
+        background: var(--success);
+      }
+      .status-dot.gray {
+        background: var(--muted);
+      }
+
+      /* Animations */
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .fade-in {
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 1024px) {
+        .admin-shell {
+          grid-template-columns: 1fr;
+        }
+        .sidebar {
+          flex-direction: row;
+          align-items: center;
+          gap: 16px;
+          position: static;
+          height: auto;
+        }
+        .sidebar-nav {
+          flex-direction: row;
+          flex-wrap: wrap;
+          width: 100%;
+        }
+        .sidebar-nav .nav-link {
+          width: auto;
+          flex: 1 1 45%;
+        }
+        .admin-layout {
+          grid-template-columns: 1fr;
+        }
+        .preview-card {
+          position: static;
+          margin-top: 24px;
+        }
+      }
+
+      @media (max-width: 960px) {
+        .sidebar {
+          display: none;
+        }
+        .admin-shell {
+          grid-template-columns: 1fr;
+        }
+        .mobile-menu-btn {
+          display: inline-flex;
+        }
+        .topbar-actions {
+          width: 100%;
+          justify-content: flex-start;
+          margin-left: 0;
+        }
+      }
+
+      @media (max-width: 720px) {
+        .topbar {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+          padding: 16px 18px;
+        }
+        .container {
+          padding: 16px;
+        }
+        .topbar-actions {
+          width: 100%;
+          display: grid;
+          grid-template-columns: auto 1fr auto;
+          align-items: center;
+          gap: 10px;
+          margin-left: 0;
+          justify-content: flex-start;
+        }
+        .topbar-actions > * {
+          min-width: 0;
+        }
+        .pill {
+          width: 100%;
+          justify-content: flex-start;
+        }
+        #loginBtn,
+        #logoutBtn {
+          justify-self: end;
+        }
+        .form .grid {
+          grid-template-columns: 1fr;
+        }
+        .table {
+          font-size: 12px;
+        }
+        .table th,
+        .table td {
+          padding: 8px;
+        }
+        .btn-icon {
+          width: 28px;
+          height: 28px;
+        }
+        .mobile-nav-panel {
+          left: 0;
+          right: auto;
+          top: calc(100% + 6px);
+          width: 72vw;
+          max-width: 260px;
+          min-width: 210px;
+        }
+        .main-scroll {
+          padding: 16px;
+        }
+        .panel {
+          padding: 18px;
+        }
+        .flex-between {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        .stats-grid {
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        }
+        .stat-value {
+          font-size: 1.6rem;
+        }
+        .topbar-actions {
+          grid-template-columns: auto minmax(0, 1fr) auto;
+        }
+        .filter-bar {
+          display: grid;
+          grid-template-columns: 1fr;
+          width: 100%;
+          gap: 10px;
+        }
+        .filter-bar select,
+        .filter-bar input,
+        .filter-bar button {
+          width: 100%;
+          min-width: 0;
+        }
+        #orderSearch {
+          width: 100% !important;
+        }
+        #orderStatusFilter,
+        #orderEventFilter {
+          min-width: 0 !important;
+        }
+        #toggleQrPanel,
+        #qrStopBtn,
+        #refreshOrdersBtn {
+          justify-content: center;
+        }
+        #qrPanel .flex {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        #qrInput {
+          min-width: 0 !important;
+          width: 100% !important;
+        }
+        #ordersTable th.status-col,
+        #ordersTable td.status-col,
+        #ordersTable th.checkin-col,
+        #ordersTable td.checkin-col {
+          min-width: 0;
+        }
+        #ordersTable td.status-col .badge {
+          min-width: 0;
+          width: auto;
+        }
+        #ordersTable thead,
+        #eventsTable thead,
+        #referralTable thead {
+          display: none;
+        }
+        #ordersTable,
+        #ordersTable tbody,
+        #ordersTable tr,
+        #ordersTable td,
+        #eventsTable,
+        #eventsTable tbody,
+        #eventsTable tr,
+        #eventsTable td,
+        #referralTable,
+        #referralTable tbody,
+        #referralTable tr,
+        #referralTable td {
+          display: block;
+          width: 100%;
+        }
+        #ordersTable tbody tr,
+        #eventsTable tbody tr,
+        #referralTable tbody tr {
+          margin-bottom: 12px;
+          padding: 12px;
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          background: var(--panel);
+          box-shadow: var(--shadow);
+        }
+        #ordersTable tbody tr td,
+        #eventsTable tbody tr td,
+        #referralTable tbody tr td {
+          padding: 6px 0;
+          border-bottom: 1px solid var(--border);
+          display: flex;
+          gap: 8px;
+          align-items: flex-start;
+          word-break: normal;
+          overflow-wrap: anywhere;
+        }
+        #ordersTable tbody tr td:last-child,
+        #eventsTable tbody tr td:last-child,
+        #referralTable tbody tr td:last-child {
+          border-bottom: none;
+        }
+        #ordersTable tbody tr td::before,
+        #eventsTable tbody tr td::before,
+        #referralTable tbody tr td::before {
+          content: attr(data-label);
+          font-weight: 600;
+          color: var(--muted);
+          min-width: 110px;
+          text-transform: capitalize;
+        }
+        #ordersTable tbody tr td[colspan],
+        #eventsTable tbody tr td[colspan],
+        #referralTable tbody tr td[colspan] {
+          display: block;
+          border-bottom: none;
+          padding: 8px 0;
+        }
+        #ordersTable tbody tr td[colspan]::before,
+        #eventsTable tbody tr td[colspan]::before,
+        #referralTable tbody tr td[colspan]::before {
+          content: "";
+          display: none;
+        }
+        #eventsTable tbody tr td .table-actions,
+        #referralTable tbody tr td .table-actions {
+          width: 100%;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        #eventsTable tbody tr td .table-actions button,
+        #referralTable tbody tr td .table-actions button {
+          flex: 1 1 45%;
+          min-width: 120px;
+        }
+      }
+
+      /* Efek cermin untuk kamera QR */
+      #qrReader video {
+        transform: scaleX(-1);
+        -webkit-transform: scaleX(-1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="admin-shell">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <img src="images/logokj.png" alt="ketenangan jiwa" />
+          <div class="brand-meta">
+            <span class="brand-name">ketenangan jiwa</span>
+            <span class="brand-role">Admin</span>
           </div>
         </div>
-      </div>
+        <nav class="sidebar-nav">
+          <button class="nav-link active" data-target="page-stats">
+            <i class="fa-solid fa-chart-line"></i> Statistik
+          </button>
+          <button class="nav-link" data-target="page-kelola">
+            <i class="fa-regular fa-pen-to-square"></i> Kelola Event
+          </button>
+          <button class="nav-link" data-target="page-daftar">
+            <i class="fa-regular fa-calendar"></i> Daftar Event
+          </button>
+          <button class="nav-link" data-target="page-transaksi">
+            <i class="fa-solid fa-receipt"></i> Transaksi
+          </button>
+          <button class="nav-link" data-target="page-scan-qr">
+            <i class="fa-solid fa-qrcode"></i> Scan QR Tiket
+          </button>
+          <button class="nav-link" data-target="page-referral">
+            <i class="fa-solid fa-tag"></i> Referral
+          </button>
+        </nav>
+      </aside>
 
-      <div class="main-scroll">
-        <div class="container">
-          <div id="guardPanel" class="panel">
-            <h2>Status Akses</h2>
-            <p id="guardMessage" class="muted">Memeriksa sesi...</p>
+      <div class="admin-main">
+        <div class="topbar">
+          <div class="topbar-title" id="pageTitle">Statistik Pesanan</div>
+          <div class="topbar-actions">
+            <button
+              class="mobile-menu-btn"
+              id="mobileMenuBtn"
+              aria-label="Buka menu dashboard"
+              aria-expanded="false"
+            >
+              <i class="fa-solid fa-ellipsis-vertical"></i>
+            </button>
+            <span id="userInfo" class="pill user-pill hidden"></span>
+            <a
+              class="icon-square home-btn"
+              href="index.html"
+              aria-label="Kembali ke Home"
+            >
+              <i class="fa-solid fa-house"></i>
+            </a>
+            <button
+              id="loginBtn"
+              class="icon-square profile-trigger"
+              aria-label="Login dengan Google"
+            >
+              <img src="images/Profile.png" alt="Login" />
+            </button>
+            <button id="logoutBtn" class="logout-btn hidden">Logout</button>
+            <div class="mobile-nav-panel" id="mobileNavPanel">
+              <button class="nav-link active" data-target="page-stats">
+                <i class="fa-solid fa-chart-line"></i> Statistik
+              </button>
+              <button class="nav-link" data-target="page-kelola">
+                <i class="fa-regular fa-pen-to-square"></i> Kelola Event
+              </button>
+              <button class="nav-link" data-target="page-daftar">
+                <i class="fa-regular fa-calendar"></i> Daftar Event
+              </button>
+              <button class="nav-link" data-target="page-transaksi">
+                <i class="fa-solid fa-receipt"></i> Transaksi
+              </button>
+              <button class="nav-link" data-target="page-scan-qr">
+                <i class="fa-solid fa-qrcode"></i> Scan QR Tiket
+              </button>
+              <button class="nav-link" data-target="page-referral">
+                <i class="fa-solid fa-tag"></i> Referral
+              </button>
+            </div>
           </div>
+        </div>
 
-          <div id="dashboard" class="hidden">
-            <section class="page page-active" id="page-stats">
-              <div class="panel stats-panel">
-                <div class="flex-between" style="gap: 12px; flex-wrap: wrap; align-items: center;">
-                  <div>
-                    <h2>Statistik Pesanan</h2>
-                    <p class="muted">Pantau pendapatan, status order, dan estimasi peserta.</p>
-                  </div>
-                  <div class="stats-filter">
-                    <label for="statEventFilter">Event</label>
-                    <select id="statEventFilter">
-                      <option value="">Semua event</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="stats-grid">
-                  <div class="stat-card">
-                    <p class="stat-label">Pendapatan (bersih)</p>
-                    <p class="stat-value" id="statRevenue">Rp 0</p>
-                    <p class="muted">Total tagihan lunas setelah potongan admin Tripay.</p>
-                  </div>
-                  <div class="stat-card">
-                    <p class="stat-label">Pesanan berstatus paid</p>
-                    <p class="stat-value" id="statPaidCount">0</p>
-                    <p class="muted">Order yang sudah diverifikasi pembayaran.</p>
-                  </div>
-                  <div class="stat-card">
-                    <p class="stat-label">Peserta terdaftar</p>
-                    <p class="stat-value" id="statParticipantCount">0</p>
-                    <p class="muted">Jumlah tiket/kuota yang terisi.</p>
-                  </div>
-                </div>
-                <ul class="stat-status-list" id="statStatusList">
-                  <li class="muted">Menunggu data transaksi...</li>
-                </ul>
-                <div class="stats-charts">
-                  <div class="chart-card">
+        <div class="main-scroll">
+          <div class="container">
+            <div id="guardPanel" class="panel">
+              <h2>Status Akses</h2>
+              <p id="guardMessage" class="muted">Memeriksa sesi...</p>
+            </div>
+
+            <div id="dashboard" class="hidden">
+              <section class="page page-active" id="page-stats">
+                <div class="panel stats-panel">
+                  <div
+                    class="flex-between"
+                    style="gap: 12px; flex-wrap: wrap; align-items: center"
+                  >
                     <div>
-                      <h3>Status pesanan</h3>
-                      <p class="muted">Distribusi paid, pending, dll.</p>
+                      <h2>Statistik Pesanan</h2>
+                      <p class="muted">
+                        Pantau pendapatan, status order, dan estimasi peserta.
+                      </p>
                     </div>
-                    <div class="chart-shell">
-                      <canvas id="statusChart" height="220"></canvas>
-                    </div>
-                  </div>
-                  <div class="chart-card">
-                    <div>
-                      <h3>Jenis tiket</h3>
-                      <p class="muted">Regular vs VIP yang terjual.</p>
-                    </div>
-                    <div class="chart-shell">
-                      <canvas id="typeChart" height="220"></canvas>
-                    </div>
-                  </div>
-                </div>
-                <p class="muted stat-updated" id="statUpdatedAt">Terakhir diperbarui: -</p>
-              </div>
-            </section>
-
-            <section class="page" id="page-kelola">
-              <div class="panel" id="kelolaEventPanel">
-                <div class="flex-between" style="gap: 12px; flex-wrap: wrap; align-items: center;">
-                  <div>
-                    <h2>Kelola Event</h2>
-                    <p class="muted">Tambah/edit event, upload poster Cloudinary, lalu simpan ke Firestore.</p>
-                  </div>
-                  <div class="flex" style="gap: 8px; align-items: center; flex-wrap: wrap;">
-                    <div class="status-text">
-                      <span id="adminStatus" class="badge gray">checking</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="panel">
-                <div class="admin-layout">
-                  <form id="eventForm">
-                    <div class="grid">
-                      <div>
-                        <label>Judul</label>
-                        <input name="title" type="text" placeholder="Judul event" required />
-                      </div>
-                      <div>
-                        <label>Slug (unik)</label>
-                        <input name="slug" type="text" placeholder="kajian-tafsir-al-baqarah" required />
-                      </div>
-                      <div>
-                        <label>Kategori</label>
-                        <input name="category" type="text" placeholder="Tafsir / Fiqih / dll" />
-                      </div>
-                      <div>
-                        <label>Status</label>
-                        <select name="status">
-                          <option value="draft">Draft</option>
-                          <option value="published">Published</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label>Status Penjualan</label>
-                        <div class="status-toggle" id="ticketStatusToggle">
-                          <button type="button" class="outline toggle-sell-on active" data-ticket-status="sell_on">Sell On</button>
-                          <button type="button" class="outline toggle-sold-out" data-ticket-status="sold_out">Sold Out</button>
-                        </div>
-                        <input type="hidden" name="ticketStatus" value="sell_on" />
-                      </div>
-                      <div>
-                        <label>Tanggal</label>
-                        <input name="schedule" type="text" placeholder="Sabtu, 8 Nov 2025" />
-                      </div>
-                      <div>
-                        <label>Waktu</label>
-                        <input name="time" type="text" placeholder="19:00 - 21:00 WIB" />
-                      </div>
-                      <div>
-                        <label>Lokasi</label>
-                        <input name="location" type="text" placeholder="Masjid / Aula" />
-                      </div>
-                      <div>
-                        <label>Alamat lengkap</label>
-                        <input name="address" type="text" placeholder="Jl. ..." />
-                      </div>
-                      <div>
-                        <label>Pemateri</label>
-                        <input name="speaker" type="text" placeholder="Nama ustadz/ustadzah" />
-                      </div>
-              <div>
-                <label>Harga Reguler (0 untuk gratis)</label>
-                <input name="priceRegular" type="number" min="0" step="1000" value="0" />
-              </div>
-              <div>
-                <label>Harga VIP (opsional)</label>
-                <input name="priceVip" type="number" min="0" step="1000" value="0" />
-              </div>
-                      <div>
-                        <label>Kapasitas (opsional)</label>
-                        <input name="capacity" type="number" min="0" step="1" />
-                      </div>
-                      <div>
-                        <label>Kuota Reguler (opsional)</label>
-                        <input name="quotaRegular" type="number" min="0" step="1" />
-                      </div>
-                      <div>
-                        <label>Kuota VIP (opsional)</label>
-                        <input name="quotaVip" type="number" min="0" step="1" />
-                      </div>
-                      <div>
-                        <label>Tagline singkat</label>
-                        <input name="tagline" type="text" placeholder="Kalimat singkat promosi" />
-                      </div>
-                    </div>
-
-                    <div class="grid" style="margin-top:20px;">
-                      <div>
-                        <label>Deskripsi</label>
-                        <textarea name="description" placeholder="Deskripsi event"></textarea>
-                      </div>
-                      <div>
-                        <label>Highlight (pisah baris)</label>
-                        <textarea name="highlights" placeholder="Poin highlight, satu per baris"></textarea>
-                      </div>
-                    </div>
-
-                    <div class="grid" style="margin-top:20px;">
-                      <div>
-                        <label>Agenda (format: 08:30 - registrasi)</label>
-                        <textarea name="agenda" placeholder="08:30 - Registrasi&#10;09:00 - Sesi 1: ..."></textarea>
-                      </div>
-                      <div>
-                        <label>Catatan (pisah baris)</label>
-                        <textarea name="notes" placeholder="Catatan untuk peserta"></textarea>
-                      </div>
-                      <div>
-                        <label>Persiapan (pisah baris)</label>
-                        <textarea name="preparation" placeholder="Persiapan peserta"></textarea>
-                      </div>
-                      <div>
-                        <label>Poster URL</label>
-                        <input name="imageUrl" type="text" placeholder="Hasil upload Cloudinary" />
-                        <div class="flex" style="margin-top:12px;">
-                          <button type="button" id="uploadPosterBtn" class="outline">
-                            <i class="fa-regular fa-image"></i> Upload/Ganti Poster
-                          </button>
-                          <div class="preview hidden" id="posterPreview"></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="grid" style="margin-top:20px;">
-                      <div>
-                        <label>Kontak WA</label>
-                        <input name="contactWa" type="text" placeholder="https://wa.me/62..." />
-                      </div>
-                      <div>
-                        <label>Kontak Telepon</label>
-                        <input name="contactPhone" type="text" placeholder="08xx" />
-                      </div>
-                      <div>
-                        <label>Kontak Email</label>
-                        <input name="contactEmail" type="email" placeholder="panitia@contoh.com" />
-                      </div>
-                    </div>
-
-                    <div class="form-actions">
-                      <button type="submit" id="saveBtn"><i class="fa-regular fa-floppy-disk"></i> Simpan</button>
-                      <button type="button" id="createEventBtn" class="success-btn"><i class="fa-solid fa-plus"></i> Buat Event</button>
-                      <button type="button" id="resetBtn" class="outline">Reset Form</button>
-                      <span id="formStatus" class="muted"></span>
-                    </div>
-                  </form>
-
-                  <div>
-                    <div class="preview-card" id="livePreview">
-                      <div class="preview-media">
-                        <img id="previewImage" src="./images/placeholder.jpg" alt="Poster event">
-                        <span class="preview-chip" id="previewCategory">Kategori</span>
-                      </div>
-                      <div class="preview-body">
-                        <h3 class="preview-title" id="previewTitle">Judul Event</h3>
-                        <p class="preview-tagline" id="previewTagline">Tagline atau deskripsi singkat.</p>
-                        <ul class="preview-meta">
-                          <li><i class="fa-regular fa-calendar-days"></i><span id="previewSchedule">Tanggal & waktu</span></li>
-                          <li><i class="fa-solid fa-location-dot"></i><span id="previewLocation">Lokasi</span></li>
-                          <li><i class="fa-regular fa-user"></i><span id="previewSpeaker">Pemateri</span></li>
-                        </ul>
-                      </div>
-                      <div class="preview-footer">
-                        <span class="preview-price" id="previewPrice">Gratis</span>
-                        <button class="preview-btn" type="button">Daftar</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section class="page" id="page-daftar">
-              <div class="panel">
-                <div class="flex-between">
-                  <h3>Daftar Event</h3>
-                  <div class="flex">
-                    <button id="newEventBtn" class="outline"><i class="fa-solid fa-plus"></i> Event Baru</button>
-                    <button id="exportEventsBtn" class="outline"><i class="fa-solid fa-file-csv"></i> Download CSV</button>
-                    <button id="refreshBtn" class="outline"><i class="fa-solid fa-rotate"></i> Refresh</button>
-                  </div>
-                </div>
-                <div style="overflow-x:auto;">
-                  <table class="table" id="eventsTable">
-                    <thead>
-                      <tr>
-                        <th>Judul</th>
-                        <th>Slug</th>
-                        <th>Status</th>
-                        <th>Tanggal</th>
-                        <th>Lokasi</th>
-                        <th>Harga</th>
-                        <th>Kuota</th>
-                        <th>Poster</th>
-                        <th>Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody></tbody>
-                  </table>
-                </div>
-              </div>
-            </section>
-
-            <section class="page" id="page-transaksi">
-              <div class="panel">
-                <div class="flex-between">
-                  <h3>Transaksi</h3>
-
-                  <!-- FILTER BAR -->
-                  <div class="flex filter-bar">
-
-                    <select id="orderStatusFilter" style="min-width: 180px;">
-                      <option value="">Semua status</option>
-                      <option value="paid">Paid</option>
-                      <option value="pending">Pending/Unpaid</option>
-                      <option value="expired">Expired</option>
-                      <option value="failed">Failed</option>
-                      <option value="canceled">Canceled</option>
-                      <option value="refunded">Refunded</option>
-                    </select>
-
-                    <select id="orderEventFilter" style="min-width: 200px;">
-                      <option value="">Semua event</option>
-                    </select>
-
-                    <input id="orderSearch" type="text"
-                           placeholder="Cari ref/email"
-                           style="width: 220px;" />
-
-                    <button id="toggleQrPanel" class="outline">
-                      <i class="fa-solid fa-qrcode"></i> Scan QR
-                    </button>
-
-                    <button id="qrStopBtn" class="outline">
-                      Stop kamera
-                    </button>
-
-                    <button id="refreshOrdersBtn" class="outline">
-                      <i class="fa-solid fa-rotate"></i> Refresh
-                    </button>
-
-                    <button id="exportOrdersBtn" class="outline">
-                      <i class="fa-solid fa-file-excel"></i> Download Excel (Paid)
-                    </button>
-
-                  </div>
-                </div>
-
-                <!-- QR PANEL DI BAWAH FILTER -->
-                <div id="qrPanel" class="hidden" style="margin-top: 12px; display: grid; gap: 8px;">
-                  <p id="qrStatus" class="muted" style="margin:0;">Scan QR tiket untuk verifikasi check-in.</p>
-
-                  <div id="qrReader"
-                       style="width: 100%; max-width: 440px; margin: 0 auto;
-                              border: 1px solid var(--border); border-radius: 12px; overflow: hidden;">
-                  </div>
-
-                  <div class="flex" style="gap: 8px; flex-wrap: wrap;">
-                    <input id="qrInput" type="text"
-                           placeholder="Kode ref / merchantRef"
-                           style="flex: 1; min-width: 200px;" />
-                    <button id="qrSubmitBtn" class="outline">Verifikasi kode</button>
-                  </div>
-                </div>
-
-                <!-- TABEL TRANSAKSI -->
-                <div style="overflow-x:auto; margin-top: 16px;">
-                  <table class="table" id="ordersTable">
-                    <thead>
-                      <tr>
-                <th>Ref</th>
-                <th>Event</th>
-                <th>Tipe</th>
-                <th>Customer</th>
-                <th>Metode</th>
-                <th class="status-col">Status</th>
-                <th class="checkin-col">Check-in</th>
-                <th>Total</th>
-                        <th>Dibuat</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr><td colspan="8" class="muted">Belum ada data.</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-
-                <div class="flex-between" style="margin-top:12px; gap: 12px;">
-                  <div id="ordersStatus" class="muted">-</div>
-                  <button id="loadMoreOrders" class="outline">Muat lebih</button>
-                </div>
-              </div>
-            </section>
-
-            <section class="page" id="page-referral">
-              <div class="panel">
-                <div class="flex-between" style="gap: 12px; flex-wrap: wrap; align-items: center;">
-                  <div>
-                    <h2>Referral</h2>
-                    <p class="muted">Atur kode referral dan pantau penggunaannya.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div class="panel">
-                <form id="referralForm">
-                  <div class="grid">
-                    <div>
-                      <label>Kode Referral</label>
-                      <input name="referralCode" type="text" placeholder="KODE123" required />
-                    </div>
-                    <div>
-                      <label>Status</label>
-                      <select name="referralActive">
-                        <option value="active">Aktif</option>
-                        <option value="inactive">Nonaktif</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label>Event</label>
-                      <select name="referralEventId" id="referralEventId">
+                    <div class="stats-filter">
+                      <label for="statEventFilter">Event</label>
+                      <select id="statEventFilter">
                         <option value="">Semua event</option>
                       </select>
                     </div>
-                    <div>
-                      <label>Harga Reguler Setelah Referral</label>
-                      <input name="referralRegularPriceAfter" type="number" min="0" placeholder="0" />
+                  </div>
+                  <div class="stats-grid">
+                    <div class="stat-card">
+                      <p class="stat-label">Pendapatan (bersih)</p>
+                      <p class="stat-value" id="statRevenue">Rp 0</p>
+                      <p class="muted">
+                        Total tagihan lunas setelah potongan admin Tripay.
+                      </p>
                     </div>
-                    <div>
-                      <label>Harga VIP Setelah Referral</label>
-                      <input name="referralVipPriceAfter" type="number" min="0" placeholder="0" />
+                    <div class="stat-card">
+                      <p class="stat-label">Pesanan berstatus paid</p>
+                      <p class="stat-value" id="statPaidCount">0</p>
+                      <p class="muted">
+                        Order yang sudah diverifikasi pembayaran.
+                      </p>
+                    </div>
+                    <div class="stat-card">
+                      <p class="stat-label">Peserta terdaftar</p>
+                      <p class="stat-value" id="statParticipantCount">0</p>
+                      <p class="muted">Jumlah tiket/kuota yang terisi.</p>
                     </div>
                   </div>
-                  <div class="flex" style="gap: 8px; flex-wrap: wrap; margin-top: 12px;">
-                    <button id="referralSaveBtn" type="submit" class="success-btn">Simpan</button>
-                    <button id="referralResetBtn" type="button" class="outline">Reset</button>
+                  <ul class="stat-status-list" id="statStatusList">
+                    <li class="muted">Menunggu data transaksi...</li>
+                  </ul>
+                  <div class="stats-charts">
+                    <div class="chart-card">
+                      <div>
+                        <h3>Status pesanan</h3>
+                        <p class="muted">Distribusi paid, pending, dll.</p>
+                      </div>
+                      <div class="chart-shell">
+                        <canvas id="statusChart" height="220"></canvas>
+                      </div>
+                    </div>
+                    <div class="chart-card">
+                      <div>
+                        <h3>Jenis tiket</h3>
+                        <p class="muted">Regular vs VIP yang terjual.</p>
+                      </div>
+                      <div class="chart-shell">
+                        <canvas id="typeChart" height="220"></canvas>
+                      </div>
+                    </div>
                   </div>
-                  <p id="referralFormStatus" class="muted" style="margin-top: 8px;"></p>
-                </form>
-              </div>
-
-              <div class="panel">
-                <div style="overflow-x:auto;">
-                  <table class="table" id="referralTable">
-                    <thead>
-                      <tr>
-                        <th>Kode</th>
-                        <th>Event</th>
-                        <th>Status</th>
-                        <th>Harga Reguler</th>
-                        <th>Harga VIP</th>
-                        <th>Dipakai</th>
-                        <th>Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr><td colspan="7" class="muted">Belum ada data.</td></tr>
-                    </tbody>
-                  </table>
+                  <p class="muted stat-updated" id="statUpdatedAt">
+                    Terakhir diperbarui: -
+                  </p>
                 </div>
-              </div>
-            </section>
+              </section>
+
+              <section class="page" id="page-kelola">
+                <div class="panel" id="kelolaEventPanel">
+                  <div
+                    class="flex-between"
+                    style="gap: 12px; flex-wrap: wrap; align-items: center"
+                  >
+                    <div>
+                      <h2>Kelola Event</h2>
+                      <p class="muted">
+                        Tambah/edit event, upload poster Cloudinary, lalu simpan
+                        ke Firestore.
+                      </p>
+                    </div>
+                    <div
+                      class="flex"
+                      style="gap: 8px; align-items: center; flex-wrap: wrap"
+                    >
+                      <div class="status-text">
+                        <span id="adminStatus" class="badge gray"
+                          >checking</span
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="panel">
+                  <div class="admin-layout">
+                    <form id="eventForm">
+                      <div class="grid">
+                        <div>
+                          <label>Judul</label>
+                          <input
+                            name="title"
+                            type="text"
+                            placeholder="Judul event"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label>Slug (unik)</label>
+                          <input
+                            name="slug"
+                            type="text"
+                            placeholder="kajian-tafsir-al-baqarah"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label>Kategori</label>
+                          <input
+                            name="category"
+                            type="text"
+                            placeholder="Tafsir / Fiqih / dll"
+                          />
+                        </div>
+                        <div>
+                          <label>Status</label>
+                          <select name="status">
+                            <option value="draft">Draft</option>
+                            <option value="published">Published</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label>Status Penjualan</label>
+                          <div class="status-toggle" id="ticketStatusToggle">
+                            <button
+                              type="button"
+                              class="outline toggle-sell-on active"
+                              data-ticket-status="sell_on"
+                            >
+                              Sell On
+                            </button>
+                            <button
+                              type="button"
+                              class="outline toggle-sold-out"
+                              data-ticket-status="sold_out"
+                            >
+                              Sold Out
+                            </button>
+                          </div>
+                          <input
+                            type="hidden"
+                            name="ticketStatus"
+                            value="sell_on"
+                          />
+                        </div>
+                        <div>
+                          <label>Tanggal</label>
+                          <input
+                            name="schedule"
+                            type="text"
+                            placeholder="Sabtu, 8 Nov 2025"
+                          />
+                        </div>
+                        <div>
+                          <label>Waktu</label>
+                          <input
+                            name="time"
+                            type="text"
+                            placeholder="19:00 - 21:00 WIB"
+                          />
+                        </div>
+                        <div>
+                          <label>Lokasi</label>
+                          <input
+                            name="location"
+                            type="text"
+                            placeholder="Masjid / Aula"
+                          />
+                        </div>
+                        <div>
+                          <label>Alamat lengkap</label>
+                          <input
+                            name="address"
+                            type="text"
+                            placeholder="Jl. ..."
+                          />
+                        </div>
+                        <div>
+                          <label>Pemateri</label>
+                          <input
+                            name="speaker"
+                            type="text"
+                            placeholder="Nama ustadz/ustadzah"
+                          />
+                        </div>
+                        <div>
+                          <label>Harga Reguler (0 untuk gratis)</label>
+                          <input
+                            name="priceRegular"
+                            type="number"
+                            min="0"
+                            step="1000"
+                            value="0"
+                          />
+                        </div>
+                        <div>
+                          <label>Harga VIP (opsional)</label>
+                          <input
+                            name="priceVip"
+                            type="number"
+                            min="0"
+                            step="1000"
+                            value="0"
+                          />
+                        </div>
+                        <div>
+                          <label>Kapasitas (opsional)</label>
+                          <input
+                            name="capacity"
+                            type="number"
+                            min="0"
+                            step="1"
+                          />
+                        </div>
+                        <div>
+                          <label>Kuota Reguler (opsional)</label>
+                          <input
+                            name="quotaRegular"
+                            type="number"
+                            min="0"
+                            step="1"
+                          />
+                        </div>
+                        <div>
+                          <label>Kuota VIP (opsional)</label>
+                          <input
+                            name="quotaVip"
+                            type="number"
+                            min="0"
+                            step="1"
+                          />
+                        </div>
+                        <div>
+                          <label>Tagline singkat</label>
+                          <input
+                            name="tagline"
+                            type="text"
+                            placeholder="Kalimat singkat promosi"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="grid" style="margin-top: 20px">
+                        <div>
+                          <label>Deskripsi</label>
+                          <textarea
+                            name="description"
+                            placeholder="Deskripsi event"
+                          ></textarea>
+                        </div>
+                        <div>
+                          <label>Highlight (pisah baris)</label>
+                          <textarea
+                            name="highlights"
+                            placeholder="Poin highlight, satu per baris"
+                          ></textarea>
+                        </div>
+                      </div>
+
+                      <div class="grid" style="margin-top: 20px">
+                        <div>
+                          <label>Agenda (format: 08:30 - registrasi)</label>
+                          <textarea
+                            name="agenda"
+                            placeholder="08:30 - Registrasi&#10;09:00 - Sesi 1: ..."
+                          ></textarea>
+                        </div>
+                        <div>
+                          <label>Catatan (pisah baris)</label>
+                          <textarea
+                            name="notes"
+                            placeholder="Catatan untuk peserta"
+                          ></textarea>
+                        </div>
+                        <div>
+                          <label>Persiapan (pisah baris)</label>
+                          <textarea
+                            name="preparation"
+                            placeholder="Persiapan peserta"
+                          ></textarea>
+                        </div>
+                        <div>
+                          <label>Poster URL</label>
+                          <input
+                            name="imageUrl"
+                            type="text"
+                            placeholder="Hasil upload Cloudinary"
+                          />
+                          <div class="flex" style="margin-top: 12px">
+                            <button
+                              type="button"
+                              id="uploadPosterBtn"
+                              class="outline"
+                            >
+                              <i class="fa-regular fa-image"></i> Upload/Ganti
+                              Poster
+                            </button>
+                            <div
+                              class="preview hidden"
+                              id="posterPreview"
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="grid" style="margin-top: 20px">
+                        <div>
+                          <label>Kontak WA</label>
+                          <input
+                            name="contactWa"
+                            type="text"
+                            placeholder="https://wa.me/62..."
+                          />
+                        </div>
+                        <div>
+                          <label>Kontak Telepon</label>
+                          <input
+                            name="contactPhone"
+                            type="text"
+                            placeholder="08xx"
+                          />
+                        </div>
+                        <div>
+                          <label>Kontak Email</label>
+                          <input
+                            name="contactEmail"
+                            type="email"
+                            placeholder="panitia@contoh.com"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="form-actions">
+                        <button type="submit" id="saveBtn">
+                          <i class="fa-regular fa-floppy-disk"></i> Simpan
+                        </button>
+                        <button
+                          type="button"
+                          id="createEventBtn"
+                          class="success-btn"
+                        >
+                          <i class="fa-solid fa-plus"></i> Buat Event
+                        </button>
+                        <button type="button" id="resetBtn" class="outline">
+                          Reset Form
+                        </button>
+                        <span id="formStatus" class="muted"></span>
+                      </div>
+                    </form>
+
+                    <div>
+                      <div class="preview-card" id="livePreview">
+                        <div class="preview-media">
+                          <img
+                            id="previewImage"
+                            src="./images/placeholder.jpg"
+                            alt="Poster event"
+                          />
+                          <span class="preview-chip" id="previewCategory"
+                            >Kategori</span
+                          >
+                        </div>
+                        <div class="preview-body">
+                          <h3 class="preview-title" id="previewTitle">
+                            Judul Event
+                          </h3>
+                          <p class="preview-tagline" id="previewTagline">
+                            Tagline atau deskripsi singkat.
+                          </p>
+                          <ul class="preview-meta">
+                            <li>
+                              <i class="fa-regular fa-calendar-days"></i
+                              ><span id="previewSchedule">Tanggal & waktu</span>
+                            </li>
+                            <li>
+                              <i class="fa-solid fa-location-dot"></i
+                              ><span id="previewLocation">Lokasi</span>
+                            </li>
+                            <li>
+                              <i class="fa-regular fa-user"></i
+                              ><span id="previewSpeaker">Pemateri</span>
+                            </li>
+                          </ul>
+                        </div>
+                        <div class="preview-footer">
+                          <span class="preview-price" id="previewPrice"
+                            >Gratis</span
+                          >
+                          <button class="preview-btn" type="button">
+                            Daftar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="page" id="page-daftar">
+                <div class="panel">
+                  <div class="flex-between">
+                    <h3>Daftar Event</h3>
+                    <div class="flex">
+                      <button id="newEventBtn" class="outline">
+                        <i class="fa-solid fa-plus"></i> Event Baru
+                      </button>
+                      <button id="exportEventsBtn" class="outline">
+                        <i class="fa-solid fa-file-csv"></i> Download CSV
+                      </button>
+                      <button id="refreshBtn" class="outline">
+                        <i class="fa-solid fa-rotate"></i> Refresh
+                      </button>
+                    </div>
+                  </div>
+                  <div style="overflow-x: auto">
+                    <table class="table" id="eventsTable">
+                      <thead>
+                        <tr>
+                          <th>Judul</th>
+                          <th>Slug</th>
+                          <th>Status</th>
+                          <th>Tanggal</th>
+                          <th>Lokasi</th>
+                          <th>Harga</th>
+                          <th>Kuota</th>
+                          <th>Poster</th>
+                          <th>Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody></tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+
+              <section class="page" id="page-transaksi">
+                <div class="panel">
+                  <div class="flex-between">
+                    <h3>Transaksi</h3>
+
+                    <!-- FILTER BAR -->
+                    <div class="flex filter-bar">
+                      <select id="orderStatusFilter" style="min-width: 180px">
+                        <option value="">Semua status</option>
+                        <option value="paid">Paid</option>
+                        <option value="pending">Pending/Unpaid</option>
+                        <option value="expired">Expired</option>
+                        <option value="failed">Failed</option>
+                        <option value="canceled">Canceled</option>
+                        <option value="refunded">Refunded</option>
+                      </select>
+
+                      <select id="orderEventFilter" style="min-width: 200px">
+                        <option value="">Semua event</option>
+                      </select>
+
+                      <input
+                        id="orderSearch"
+                        type="text"
+                        placeholder="Cari ref/email"
+                        style="width: 220px"
+                      />
+
+                      <button id="refreshOrdersBtn" class="outline">
+                        <i class="fa-solid fa-rotate"></i> Refresh
+                      </button>
+
+                      <button
+                        id="exportSheetsBtn"
+                        class="success-btn"
+                        style="background: #0f9d58; border-color: #0f9d58"
+                      >
+                        <i class="fa-solid fa-table"></i> Save to GSheets
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- TABEL TRANSAKSI -->
+                  <div style="overflow-x: auto; margin-top: 16px">
+                    <table class="table" id="ordersTable">
+                      <thead>
+                        <tr>
+                          <th>Ref</th>
+                          <th>Event</th>
+                          <th>Tipe</th>
+                          <th>Customer</th>
+                          <th>Metode</th>
+                          <th class="status-col">Status</th>
+                          <th class="checkin-col">Check-in</th>
+                          <th>Total</th>
+                          <th>Dibuat</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td colspan="8" class="muted">Belum ada data.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div class="flex-between" style="margin-top: 12px; gap: 12px">
+                    <div id="ordersStatus" class="muted">-</div>
+                    <button id="loadMoreOrders" class="outline">
+                      Muat lebih
+                    </button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="page" id="page-scan-qr">
+                <div class="panel">
+                  <div class="flex-between">
+                    <h3>Validasi Tiket via Kamera</h3>
+                    <button id="qrStopBtn" class="danger">
+                      <i class="fa-solid fa-stop"></i> Stop
+                    </button>
+                  </div>
+                  <p class="muted">Arahkan kamera ke QR code peserta.</p>
+                  <div
+                    id="qrReader"
+                    style="
+                      width: 100%;
+                      max-width: 400px;
+                      margin: 20px auto;
+                      border-radius: 12px;
+                      overflow: hidden;
+                    "
+                  ></div>
+                  <div id="scanResult" style="text-align: center">
+                    <p id="qrStatus" class="badge gray">Kamera siap.</p>
+                  </div>
+                </div>
+              </section>
+
+              <section class="page" id="page-referral">
+                <div class="panel">
+                  <div
+                    class="flex-between"
+                    style="gap: 12px; flex-wrap: wrap; align-items: center"
+                  >
+                    <div>
+                      <h2>Referral</h2>
+                      <p class="muted">
+                        Atur kode referral dan pantau penggunaannya.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="panel">
+                  <form id="referralForm">
+                    <div class="grid">
+                      <div>
+                        <label>Kode Referral</label>
+                        <input
+                          name="referralCode"
+                          type="text"
+                          placeholder="KODE123"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label>Status</label>
+                        <select name="referralActive">
+                          <option value="active">Aktif</option>
+                          <option value="inactive">Nonaktif</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label>Event</label>
+                        <select name="referralEventId" id="referralEventId">
+                          <option value="">Semua event</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label>Harga Reguler Setelah Referral</label>
+                        <input
+                          name="referralRegularPriceAfter"
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label>Harga VIP Setelah Referral</label>
+                        <input
+                          name="referralVipPriceAfter"
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+                    <div
+                      class="flex"
+                      style="gap: 8px; flex-wrap: wrap; margin-top: 12px"
+                    >
+                      <button
+                        id="referralSaveBtn"
+                        type="submit"
+                        class="success-btn"
+                      >
+                        Simpan
+                      </button>
+                      <button
+                        id="referralResetBtn"
+                        type="button"
+                        class="outline"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                    <p
+                      id="referralFormStatus"
+                      class="muted"
+                      style="margin-top: 8px"
+                    ></p>
+                  </form>
+                </div>
+
+                <div class="panel">
+                  <div style="overflow-x: auto">
+                    <table class="table" id="referralTable">
+                      <thead>
+                        <tr>
+                          <th>Kode</th>
+                          <th>Event</th>
+                          <th>Status</th>
+                          <th>Harga Reguler</th>
+                          <th>Harga VIP</th>
+                          <th>Dipakai</th>
+                          <th>Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td colspan="7" class="muted">Belum ada data.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    const navButtons = document.querySelectorAll('.nav-link');
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    const mobileNavPanel = document.getElementById('mobileNavPanel');
-    const pageTitleEl = document.getElementById('pageTitle');
-    const pageTitles = {
-      'page-stats': 'Statistik Pesanan',
-      'page-kelola': 'Kelola Event',
-      'page-daftar': 'Daftar Event',
-      'page-transaksi': 'Transaksi',
-      'page-referral': 'Referral',
-    };
-    function closeMobileNav() {
-      if (mobileNavPanel) {
-        mobileNavPanel.classList.remove('open');
-      }
-      if (mobileMenuBtn) {
-        mobileMenuBtn.classList.remove('open');
-        mobileMenuBtn.setAttribute('aria-expanded', 'false');
-      }
-    }
-    function switchAdminPage(targetId) {
-      const pages = document.querySelectorAll('.page');
-      pages.forEach((page) => {
-        page.classList.toggle('page-active', page.id === targetId);
-      });
-      navButtons.forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.target === targetId);
-      });
-      if (pageTitleEl) {
-        pageTitleEl.textContent = pageTitles[targetId] || 'Dashboard Admin';
-      }
-      closeMobileNav();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-    window.switchAdminPage = switchAdminPage;
-    if (mobileMenuBtn && mobileNavPanel) {
-      mobileMenuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        mobileMenuBtn.classList.toggle('open');
-        mobileNavPanel.classList.toggle('open');
-        mobileMenuBtn.setAttribute(
-          'aria-expanded',
-          mobileMenuBtn.classList.contains('open') ? 'true' : 'false'
-        );
-      });
-      document.addEventListener('click', (e) => {
-        if (!mobileNavPanel.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
-          closeMobileNav();
+    <script>
+      const navButtons = document.querySelectorAll(".nav-link");
+      const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+      const mobileNavPanel = document.getElementById("mobileNavPanel");
+      const pageTitleEl = document.getElementById("pageTitle");
+      const pageTitles = {
+        "page-stats": "Statistik Pesanan",
+        "page-kelola": "Kelola Event",
+        "page-daftar": "Daftar Event",
+        "page-transaksi": "Transaksi",
+        "page-referral": "Referral",
+        "page-scan-qr": "Scan QR Tiket",
+      };
+      function closeMobileNav() {
+        if (mobileNavPanel) {
+          mobileNavPanel.classList.remove("open");
         }
-      });
-    }
-    navButtons.forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        switchAdminPage(btn.dataset.target);
-      });
-    });
-  </script>
+        if (mobileMenuBtn) {
+          mobileMenuBtn.classList.remove("open");
+          mobileMenuBtn.setAttribute("aria-expanded", "false");
+        }
+      }
+      function switchAdminPage(targetId) {
+        const pages = document.querySelectorAll(".page");
+        pages.forEach((page) => {
+          page.classList.toggle("page-active", page.id === targetId);
+        });
 
-  <script src="https://widget.cloudinary.com/v2.0/global/all.js" async></script>
-  <!-- Ganti ke versi yang mendukung cell styles -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
-  <script src="js/vendor/html5-qrcode.min.js"></script>
-  <script type="module" src="js/admin.js?v=1.1"></script>
-</body>
+        navButtons.forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.target === targetId);
+        });
+
+        if (pageTitleEl) {
+          pageTitleEl.textContent = pageTitles[targetId] || "Dashboard Admin";
+        }
+
+        // --- BARIS INI WAJIB ADA DI SINI ---
+        window.dispatchEvent(
+          new CustomEvent("adminPageChanged", { detail: targetId }),
+        );
+
+        closeMobileNav();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      window.switchAdminPage = switchAdminPage;
+      if (mobileMenuBtn && mobileNavPanel) {
+        mobileMenuBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          mobileMenuBtn.classList.toggle("open");
+          mobileNavPanel.classList.toggle("open");
+          mobileMenuBtn.setAttribute(
+            "aria-expanded",
+            mobileMenuBtn.classList.contains("open") ? "true" : "false",
+          );
+        });
+        document.addEventListener("click", (e) => {
+          if (
+            !mobileNavPanel.contains(e.target) &&
+            !mobileMenuBtn.contains(e.target)
+          ) {
+            closeMobileNav();
+          }
+        });
+      }
+      navButtons.forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          switchAdminPage(btn.dataset.target);
+        });
+      });
+    </script>
+
+    <script
+      src="https://widget.cloudinary.com/v2.0/global/all.js"
+      async
+    ></script>
+    <!-- Ganti ke versi yang mendukung cell styles -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js"></script>
+    <script src="js/vendor/html5-qrcode.min.js"></script>
+    <script type="module" src="js/admin.js?v=1.1"></script>
+  </body>
 </html>
