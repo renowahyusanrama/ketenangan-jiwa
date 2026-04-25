@@ -8,6 +8,12 @@ const TRIPAY_MODE = process.env.TRIPAY_MODE || "sandbox";
 const TRIPAY_CALLBACK_URL = process.env.TRIPAY_CALLBACK_URL || "";
 const TRIPAY_RETURN_URL = process.env.TRIPAY_RETURN_URL || "";
 
+// Gateway di Hostinger
+// Di Vercel, cukup isi salah satu:
+// TRIPAY_GATEWAY_URL              = https://gw.ketengananjiwa.id/create-transaction.php
+// atau lebih spesifik:
+// TRIPAY_GATEWAY_CREATE_URL       = https://gw.ketengananjiwa.id/create-transaction.php
+// TRIPAY_GATEWAY_CANCEL_URL       = (nanti kalau kamu bikin endpoint cancel sendiri)
 const TRIPAY_GATEWAY_CREATE_URL =
   process.env.TRIPAY_GATEWAY_CREATE_URL ||
   process.env.TRIPAY_GATEWAY_URL ||
@@ -22,19 +28,15 @@ const TRIPAY_BASE_URL =
     : "https://tripay.co.id/api-sandbox";
 
 function createTripaySignature(merchantRef, amount) {
-  if (!TRIPAY_PRIVATE_KEY || !TRIPAY_MERCHANT_CODE) {
-    throw new Error("Tripay signature config kosong");
-  }
-
+  if (!TRIPAY_PRIVATE_KEY || !TRIPAY_MERCHANT_CODE) return "";
   return crypto
     .createHmac("sha256", TRIPAY_PRIVATE_KEY)
-    .update(`${TRIPAY_MERCHANT_CODE}${merchantRef}${parseInt(amount)}`)
+    .update(`${TRIPAY_MERCHANT_CODE}${merchantRef}${Number(amount)}`)
     .digest("hex");
 }
 
 function resolveTripayMethod(paymentType, bank) {
   if (paymentType === "qris") return "QRIS";
-
   const normalized = (bank || "bca").toLowerCase();
   const map = {
     bca: "BCAVA",
@@ -44,68 +46,29 @@ function resolveTripayMethod(paymentType, bank) {
     bsi: "BSIVA",
     permata: "PERMATAVA",
   };
-
   return map[normalized] || "BCAVA";
 }
 
+/**
+ * Create transaction ke Tripay.
+ * - Kalau TRIPAY_GATEWAY_CREATE_URL di-set ➜ kirim ke gateway Hostinger (tanpa Authorization)
+ * - Kalau tidak ➜ langsung ke Tripay (butuh TRIPAY_API_KEY & whitelist IP)
+ */
 async function createTripayTransaction(payload) {
-  // 🔥 VALIDASI KERAS
-  if (!TRIPAY_API_KEY) {
-    throw new Error("TRIPAY_API_KEY kosong");
+  if (!TRIPAY_GATEWAY_CREATE_URL && !TRIPAY_API_KEY) {
+    throw new Error("Tripay tidak terkonfigurasi: gateway & API key kosong.");
   }
 
   const url =
     TRIPAY_GATEWAY_CREATE_URL ||
     `${TRIPAY_BASE_URL}/transaction/create`;
 
-  // 🔥 FIX UTAMA: SELALU KIRIM AUTH
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${TRIPAY_API_KEY}`,
-  };
-
-  try {
-    console.log("=== TRIPAY DEBUG ===");
-    console.log("URL:", url);
-    console.log("MODE:", TRIPAY_MODE);
-    console.log("USE GATEWAY:", !!TRIPAY_GATEWAY_CREATE_URL);
-    console.log("API KEY:", TRIPAY_API_KEY ? "ADA" : "KOSONG");
-
-    const { data } = await axios.post(url, payload, {
-      headers,
-      timeout: 15000,
-    });
-
-    console.log("Tripay success:", data);
-    return data;
-  } catch (error) {
-    console.error("Tripay ERROR FULL:", {
-      message: error.message,
-      data: error.response?.data,
-    });
-
-    throw error;
-  }
-}
-
-async function cancelTripayTransaction({ reference, merchantRef }) {
-  if (!TRIPAY_API_KEY) {
-    throw new Error("TRIPAY_API_KEY kosong");
-  }
-
-  const ref = reference || merchantRef;
-  if (!ref) throw new Error("reference wajib");
-
-  const payload = { reference: ref };
-
-  const url =
-    TRIPAY_GATEWAY_CANCEL_URL ||
-    `${TRIPAY_BASE_URL}/transaction/cancel`;
-
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${TRIPAY_API_KEY}`,
-  };
+  const headers = TRIPAY_GATEWAY_CREATE_URL
+    ? { "Content-Type": "application/json" }
+    : {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${TRIPAY_API_KEY}`,
+      };
 
   const { data } = await axios.post(url, payload, {
     headers,
@@ -115,27 +78,79 @@ async function cancelTripayTransaction({ reference, merchantRef }) {
   return data;
 }
 
-function normalizeTripayResponse(trx, meta) {
+/**
+ * Cancel transaction.
+ * - Kalau TRIPAY_GATEWAY_CANCEL_URL di-set ➜ kirim ke gateway cancel.
+ * - Kalau tidak ➜ langsung ke Tripay (seperti behavior lama).
+ */
+async function cancelTripayTransaction({ reference, merchantRef }) {
+  const ref = reference || merchantRef;
+  if (!ref) throw new Error("reference atau merchantRef wajib untuk cancel Tripay");
+
+  const payload = { reference: ref };
+  if (merchantRef && !payload.merchant_ref) payload.merchant_ref = merchantRef;
+
+  const url =
+    TRIPAY_GATEWAY_CANCEL_URL ||
+    `${TRIPAY_BASE_URL}/transaction/cancel`;
+
+  const headers = TRIPAY_GATEWAY_CANCEL_URL
+    ? { "Content-Type": "application/json" }
+    : {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${TRIPAY_API_KEY}`,
+      };
+
+  const { data } = await axios.post(url, payload, {
+    headers,
+    timeout: 15000,
+  });
+
+  return data;
+}
+
+function normalizeTripayResponse(
+  trx,
+  {
+    eventId,
+    eventTitle,
+    paymentType,
+    bank,
+    method,
+    merchantRef,
+    amount,
+    baseAmount,
+    platformTax,
+    tripayFee,
+    totalAmount,
+    amountForTripay,
+    ticketType,
+  }
+) {
   const payCode = trx?.pay_code || trx?.va_number || trx?.payment_code || null;
+  const total = totalAmount != null ? totalAmount : amount;
+  const base = baseAmount != null ? baseAmount : amount;
+  const chargeAmount =
+    amountForTripay != null ? amountForTripay : base + (platformTax || 0);
 
   return {
     provider: "tripay",
-    orderId: meta.merchantRef,
+    orderId: merchantRef,
     reference: trx?.reference || trx?.reference_id,
-    eventId: meta.eventId,
-    eventTitle: meta.eventTitle,
-    amount: meta.totalAmount,
-    baseAmount: meta.baseAmount,
-    platformTax: meta.platformTax,
-    tripayFee: meta.tripayFee,
-    totalAmount: meta.totalAmount,
-    amountForTripay: meta.amountForTripay,
-    ticketType: meta.ticketType || "regular",
-    paymentType: meta.paymentType,
-    bank: meta.bank || null,
-    method: meta.method,
-    paymentName: trx?.payment_name || trx?.payment_method,
-    vaNumber: meta.paymentType === "bank_transfer" ? payCode : null,
+    eventId,
+    eventTitle,
+    amount: total,
+    baseAmount: base,
+    platformTax: platformTax ?? null,
+    tripayFee: tripayFee ?? null,
+    totalAmount: total,
+    amountForTripay: chargeAmount,
+    ticketType: ticketType || "regular",
+    paymentType,
+    bank: bank || null,
+    method,
+    paymentName: trx?.payment_name || trx?.payment_method || method,
+    vaNumber: paymentType === "bank_transfer" ? payCode : null,
     payCode,
     checkoutUrl: trx?.checkout_url || trx?.pay_url,
     qrUrl: trx?.qr_url || "",
@@ -148,10 +163,76 @@ function normalizeTripayResponse(trx, meta) {
   };
 }
 
+function verifyTripayCallback(body = {}, headers = {}, rawBody = "") {
+  if (!TRIPAY_PRIVATE_KEY) return false;
+
+  const headerSig =
+    headers["x-callback-signature"] ||
+    headers["X-CALLBACK-SIGNATURE"] ||
+    headers["x-callback-signature".toLowerCase()];
+  const signature = body.signature || body.sign || headerSig;
+  if (!signature) return false;
+
+  // Tripay callback signature resmi: HMAC SHA256 dari raw JSON callback.
+  const candidates = [];
+  if (typeof rawBody === "string" && rawBody.length > 0) candidates.push(rawBody);
+  try {
+    const stringified = JSON.stringify(body);
+    if (stringified) candidates.push(stringified);
+  } catch (err) {
+    // ignore
+  }
+
+  const expectedCandidates = [];
+  for (const candidate of candidates) {
+    const expectedFromBody = crypto
+      .createHmac("sha256", TRIPAY_PRIVATE_KEY)
+      .update(candidate)
+      .digest("hex");
+    expectedCandidates.push(expectedFromBody);
+    if (signature === expectedFromBody) return true;
+  }
+
+  // Fallback ke pola lama (merchant_code + merchant_ref + amount) jika diperlukan.
+  const merchantRef =
+    body.merchant_ref || body.merchantRef || body.reference;
+  const amount =
+    body.total_amount ??
+    body.amount ??
+    body.amount_total ??
+    body.amount_received ??
+    body.amount_received_raw;
+  if (!merchantRef || amount == null) return false;
+
+  const basePayload = `${merchantRef}${TRIPAY_MERCHANT_CODE}${amount}`;
+  const altPayload = `${TRIPAY_MERCHANT_CODE}${merchantRef}${amount}`;
+  const expected = crypto
+    .createHmac("sha256", TRIPAY_PRIVATE_KEY)
+    .update(basePayload)
+    .digest("hex");
+  const altExpected = crypto
+    .createHmac("sha256", TRIPAY_PRIVATE_KEY)
+    .update(altPayload)
+    .digest("hex");
+  const matched = signature === expected || signature === altExpected;
+
+  if (!matched) {
+    console.warn("Tripay callback signature mismatch", {
+      signature,
+      expectedCandidates,
+      expectedFallback: [expected, altExpected],
+      merchantRef,
+      amount,
+      hasRawBody: !!rawBody,
+    });
+  }
+
+  return matched;
+}
+
 function mapStatus(status = "") {
   const normalized = status.toUpperCase();
-
-  const map = {
+  const statusMap = {
     PAID: "paid",
     PENDING: "pending",
     UNPAID: "pending",
@@ -161,8 +242,7 @@ function mapStatus(status = "") {
     CANCEL: "canceled",
     CANCELED: "canceled",
   };
-
-  return map[normalized] || "pending";
+  return statusMap[normalized] || normalized.toLowerCase() || "pending";
 }
 
 module.exports = {
@@ -178,5 +258,6 @@ module.exports = {
   createTripayTransaction,
   cancelTripayTransaction,
   normalizeTripayResponse,
+  verifyTripayCallback,
   mapStatus,
 };
