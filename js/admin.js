@@ -143,6 +143,101 @@ const SCAN_DELAY_MS = 300;
 const SCAN_COOLDOWN_MS = 1200;
 let scanBusy = false;
 
+class AdminGuardService {
+  constructor(getTokenResult) {
+    this.getTokenResult = getTokenResult;
+  }
+
+  async hasAdminAccess(user) {
+    if (!user) return false;
+    const tokenResult = await this.getTokenResult(user, true);
+    return tokenResult?.claims?.admin === true;
+  }
+}
+
+class AuthController {
+  constructor({
+    authInstance,
+    providerInstance,
+    guardService,
+    loginButton,
+    logoutButton,
+    signIn,
+    signOutUser,
+    observeAuthState,
+    setSession,
+    onLoggedOut,
+    onCheckingAdmin,
+    onForbidden,
+    onAuthorized,
+    onAccessCheckError,
+    onLoginError,
+    onLogoutError,
+  }) {
+    this.auth = authInstance;
+    this.provider = providerInstance;
+    this.guardService = guardService;
+    this.loginButton = loginButton;
+    this.logoutButton = logoutButton;
+    this.signIn = signIn;
+    this.signOutUser = signOutUser;
+    this.observeAuthState = observeAuthState;
+    this.setSession = setSession;
+    this.onLoggedOut = onLoggedOut;
+    this.onCheckingAdmin = onCheckingAdmin;
+    this.onForbidden = onForbidden;
+    this.onAuthorized = onAuthorized;
+    this.onAccessCheckError = onAccessCheckError;
+    this.onLoginError = onLoginError;
+    this.onLogoutError = onLogoutError;
+  }
+
+  init() {
+    this.loginButton?.addEventListener("click", () => this.login());
+    this.logoutButton?.addEventListener("click", () => this.logout());
+    return this.observeAuthState(this.auth, (user) => this.handleAuthState(user));
+  }
+
+  async login() {
+    try {
+      await this.signIn(this.auth, this.provider);
+    } catch (err) {
+      this.onLoginError(err);
+    }
+  }
+
+  logout() {
+    this.signOutUser(this.auth).catch((err) => this.onLogoutError(err));
+  }
+
+  async handleAuthState(user) {
+    this.setSession(user, false);
+
+    if (!user) {
+      this.onLoggedOut();
+      return;
+    }
+
+    this.onCheckingAdmin();
+
+    let hasAccess = false;
+    try {
+      hasAccess = await this.guardService.hasAdminAccess(user);
+    } catch (err) {
+      this.onAccessCheckError(err);
+    }
+
+    this.setSession(user, hasAccess);
+
+    if (!hasAccess) {
+      this.onForbidden();
+      return;
+    }
+
+    await this.onAuthorized(user);
+  }
+}
+
 function normalizePosterUrl(url) {
   if (!url || typeof url !== "string") return "";
   if (!url.includes("/upload/")) return url;
@@ -374,9 +469,54 @@ function setDashboardVisible(visible) {
   dashboard.classList.toggle("hidden", !visible);
   guardPanel.classList.toggle("hidden", visible);
   if (!visible) {
-    adminStatus.textContent = "bukan admin";
-    adminStatus.className = "badge gray";
+    setAdminStatus(false);
   }
+}
+
+function setAdminStatus(adminAccess) {
+  adminStatus.textContent = adminAccess ? "admin" : "bukan admin";
+  adminStatus.className = adminAccess ? "badge green" : "badge gray";
+}
+
+function setSession(user, adminAccess) {
+  currentUser = user;
+  isAdmin = adminAccess;
+  setAdminStatus(adminAccess);
+}
+
+function resetAdminOnlyState() {
+  stopQrScan();
+  qrPanel?.classList.add("hidden");
+  resetOrdersRealtime();
+}
+
+function handleLoggedOut() {
+  resetAdminOnlyState();
+  setDashboardVisible(false);
+  setGuard("Silakan login dengan akun admin.");
+  showLoggedOutUI();
+}
+
+function handleCheckingAdmin() {
+  setGuard("Memeriksa hak akses admin...");
+}
+
+function handleForbidden() {
+  resetAdminOnlyState();
+  setDashboardVisible(false);
+  showLoggedOutUI();
+  setGuard("Akun ini tidak memiliki akses admin. Minta panitia menambahkan custom claim admin.", false);
+}
+
+async function handleAuthorizedAdmin(user) {
+  showLoggedInUI(user.email || user.uid);
+  setGuard("Akses admin diberikan.", true);
+  setDashboardVisible(true);
+  resetForm();
+  await loadEvents();
+  loadOrders(true);
+  loadReferrals();
+  initCloudinaryWidget();
 }
 
 function setLoadingForm(loading) {
@@ -1056,13 +1196,6 @@ function renderPosterPreview(url) {
   posterPreview.classList.remove("hidden");
   posterPreview.innerHTML = `<img src="${normalized}" alt="Poster" />`;
   if (previewImage) previewImage.src = normalized;
-}
-
-async function requireAdmin(user) {
-  if (!user) return false;
-  // force refresh token agar klaim admin terbaru terambil
-  const tokenResult = await getIdTokenResult(user, true);
-  return tokenResult?.claims?.admin === true;
 }
 
 function normalizeTicketStatus(value) {
@@ -2157,16 +2290,6 @@ function openUpload() {
 }
 
 // === Event listeners ===
-loginBtn?.addEventListener("click", async () => {
-  try {
-    await signInWithPopup(auth, provider);
-  } catch (err) {
-    console.error(err);
-    alert("Login gagal: " + err.message);
-  }
-});
-
-logoutBtn?.addEventListener("click", () => signOut(auth).catch(console.error));
 refreshBtn?.addEventListener("click", loadEvents);
 resetBtn?.addEventListener("click", resetForm);
 newEventBtn?.addEventListener("click", () => {
@@ -2280,47 +2403,27 @@ referralTableBody?.addEventListener("click", (e) => {
 });
 
 // === Auth guard ===
-onAuthStateChanged(auth, async (user) => {
-  currentUser = user;
-  if (!user) {
-    isAdmin = false;
-    stopQrScan();
-    qrPanel?.classList.add("hidden");
-    resetOrdersRealtime();
-    setDashboardVisible(false);
-    setGuard("Silakan login dengan akun admin.");
-    showLoggedOutUI();
-    return;
-  }
-
-  setGuard("Memeriksa hak akses admin...");
-
-  try {
-    isAdmin = await requireAdmin(user);
-  } catch (err) {
+const adminGuardService = new AdminGuardService(getIdTokenResult);
+const authController = new AuthController({
+  authInstance: auth,
+  providerInstance: provider,
+  guardService: adminGuardService,
+  loginButton: loginBtn,
+  logoutButton: logoutBtn,
+  signIn: signInWithPopup,
+  signOutUser: signOut,
+  observeAuthState: onAuthStateChanged,
+  setSession,
+  onLoggedOut: handleLoggedOut,
+  onCheckingAdmin: handleCheckingAdmin,
+  onForbidden: handleForbidden,
+  onAuthorized: handleAuthorizedAdmin,
+  onAccessCheckError: console.error,
+  onLoginError: (err) => {
     console.error(err);
-    isAdmin = false;
-  }
-
-  adminStatus.textContent = isAdmin ? "admin" : "bukan admin";
-  adminStatus.className = isAdmin ? "badge green" : "badge gray";
-
-  if (!isAdmin) {
-    stopQrScan();
-    qrPanel?.classList.add("hidden");
-    resetOrdersRealtime();
-    setDashboardVisible(false);
-    showLoggedOutUI();
-    setGuard("Akun ini tidak memiliki akses admin. Minta panitia menambahkan custom claim admin.", false);
-    return;
-  }
-
-  showLoggedInUI(user.email || user.uid);
-  setGuard("Akses admin diberikan.", true);
-  setDashboardVisible(true);
-  resetForm();
-  await loadEvents();
-  loadOrders(true);
-  loadReferrals();
-  initCloudinaryWidget();
+    alert("Login gagal: " + (err?.message || err));
+  },
+  onLogoutError: console.error,
 });
+
+authController.init();
