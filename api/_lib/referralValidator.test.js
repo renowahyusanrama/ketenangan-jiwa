@@ -1,9 +1,3 @@
-/**
- * Unit Test untuk Referral Validator
- * Mata Kuliah: Design for Testability
- * Test menggunakan Jest
- */
-
 const {
   validateReferralCode,
   validateReferralDiscount,
