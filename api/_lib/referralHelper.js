@@ -1,73 +1,77 @@
-// Helper functions untuk referral validation
-// Buat test assignment Design for Testability
+// Fungsi helper buat validasi referral
+// Assignment Design for Testability
 
-const checkReferralCode = (code) => {
-  // validasi kode referral
+const cekKodeReferral = (kode) => {
+  // cek apakah kode referral valid
   
-  if (!code) return { ok: false, msg: "kode tidak boleh kosong" };
+  if (!kode) return { ok: false, msg: "kode referral tidak boleh kosong" };
   
-  if (typeof code !== 'string') {
-    return { ok: false, msg: "kode harus string" };
+  if (typeof kode !== 'string') {
+    return { ok: false, msg: "kode harus berupa teks" };
   }
   
-  let kode = code.trim();
+  let kodeTrim = kode.trim();
   
-  if (!kode) return { ok: false, msg: "kode tidak boleh kosong" };
+  if (!kodeTrim) return { ok: false, msg: "kode referral tidak boleh kosong" };
   
-  // panjang minimal 3
-  if (kode.length < 3) {
-    return { ok: false, msg: "kode terlalu pendek" };
+  // minimal 3 karakter
+  if (kodeTrim.length < 3) {
+    return { ok: false, msg: "kode referral terlalu pendek (minimal 3 karakter)" };
   }
   
-  // no spaces
-  if (kode.includes(' ')) {
-    return { ok: false, msg: "kode tidak boleh ada spasi" };
+  // tidak boleh ada spasi
+  if (kodeTrim.includes(' ')) {
+    return { ok: false, msg: "kode referral tidak boleh ada spasi" };
   }
   
   return { ok: true };
 };
 
-const checkDiscount = (disc) => {
-  // validasi diskon
+const cekDiskon = (diskon) => {
+  // cek apakah nilai diskon valid
   
-  if (typeof disc !== 'number') {
-    return { ok: false, msg: "diskon harus angka" };
+  if (typeof diskon !== 'number') {
+    return { ok: false, msg: "diskon harus berupa angka" };
   }
   
-  if (isNaN(disc)) {
+  if (isNaN(diskon)) {
     return { ok: false, msg: "diskon tidak valid" };
   }
   
-  if (disc < 0) {
+  if (diskon < 0) {
     return { ok: false, msg: "diskon tidak boleh minus" };
   }
   
-  if (disc > 100) {
-    return { ok: false, msg: "diskon maksimal 100%" };
+  if (diskon > 100) {
+    return { ok: false, msg: "diskon tidak boleh lebih dari 100%" };
   }
   
   return { ok: true };
 };
 
-const validateReferral = (code, discount) => {
-  const cekKode = checkReferralCode(code);
+const validasiReferral = (kode, diskon) => {
+  // validasi kode dan diskon referral secara lengkap
+  const cekKode = cekKodeReferral(kode);
   if (!cekKode.ok) {
     return { valid: false, error: cekKode.msg };
   }
   
-  const cekDiskon = checkDiscount(discount);
-  if (!cekDiskon.ok) {
-    return { valid: false, error: cekDiskon.msg };
+  const cekDiscValid = cekDiskon(diskon);
+  if (!cekDiscValid.ok) {
+    return { valid: false, error: cekDiscValid.msg };
   }
   
   return { 
     valid: true, 
-    data: { code: code.trim(), discount }
+    data: { 
+      kode: kode.trim(), 
+      diskon 
+    }
   };
 };
 
 module.exports = {
-  checkReferralCode,
-  checkDiscount,
-  validateReferral
+  cekKodeReferral,
+  cekDiskon,
+  validasiReferral
 };

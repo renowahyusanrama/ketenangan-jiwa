@@ -1,138 +1,138 @@
-const { checkReferralCode, checkDiscount, validateReferral } = require('./referralHelper');
+const { cekKodeReferral, cekDiskon, validasiReferral } = require('./referralHelper');
 
-describe('referral code validation', () => {
+describe('validasi kode referral', () => {
   test('kode valid jika formatnya benar', () => {
-    const result = checkReferralCode('PROMO123');
+    const result = cekKodeReferral('PROMO123');
     expect(result.ok).toBe(true);
   });
 
-  test('kosong = invalid', () => {
-    const result = checkReferralCode('');
+  test('kosong = tidak valid', () => {
+    const result = cekKodeReferral('');
     expect(result.ok).toBe(false);
   });
 
-  test('null = invalid', () => {
-    const result = checkReferralCode(null);
+  test('null = tidak valid', () => {
+    const result = cekKodeReferral(null);
     expect(result.ok).toBe(false);
   });
 
-  test('undefined = invalid', () => {
-    const result = checkReferralCode(undefined);
+  test('undefined = tidak valid', () => {
+    const result = cekKodeReferral(undefined);
     expect(result.ok).toBe(false);
   });
 
-  test('hanya spasi = invalid', () => {
-    const result = checkReferralCode('   ');
+  test('hanya spasi = tidak valid', () => {
+    const result = cekKodeReferral('   ');
     expect(result.ok).toBe(false);
   });
 
-  test('terlalu pendek dari 3 karakter', () => {
-    const result = checkReferralCode('AB');
+  test('kurang dari 3 karakter = tidak valid', () => {
+    const result = cekKodeReferral('AB');
     expect(result.ok).toBe(false);
     expect(result.msg).toContain('pendek');
   });
 
-  test('persis 3 karakter = valid', () => {
-    const result = checkReferralCode('ABC');
+  test('tepat 3 karakter = valid', () => {
+    const result = cekKodeReferral('ABC');
     expect(result.ok).toBe(true);
   });
 
-  test('tidak boleh ada spasi di tengah', () => {
-    const result = checkReferralCode('PROMO 123');
+  test('ada spasi di tengah = tidak valid', () => {
+    const result = cekKodeReferral('PROMO 123');
     expect(result.ok).toBe(false);
     expect(result.msg).toContain('spasi');
   });
 
-  test('spasi di depan/belakang ok (di-trim)', () => {
-    const result = checkReferralCode('  PROMO123  ');
+  test('spasi di awal/akhir = valid (otomatis di-trim)', () => {
+    const result = cekKodeReferral('  PROMO123  ');
     expect(result.ok).toBe(true);
   });
 
-  test('bukan string = invalid', () => {
-    const result = checkReferralCode(123);
+  test('bukan string = tidak valid', () => {
+    const result = cekKodeReferral(123);
     expect(result.ok).toBe(false);
   });
 });
 
-describe('discount validation', () => {
+describe('validasi diskon', () => {
   test('diskon 50 = valid', () => {
-    const result = checkDiscount(50);
+    const result = cekDiskon(50);
     expect(result.ok).toBe(true);
   });
 
   test('diskon 0 = valid', () => {
-    const result = checkDiscount(0);
+    const result = cekDiskon(0);
     expect(result.ok).toBe(true);
   });
 
   test('diskon 100 = valid', () => {
-    const result = checkDiscount(100);
+    const result = cekDiskon(100);
     expect(result.ok).toBe(true);
   });
 
-  test('diskon dengan decimal = valid', () => {
-    const result = checkDiscount(25.5);
+  test('diskon dengan desimal = valid', () => {
+    const result = cekDiskon(25.5);
     expect(result.ok).toBe(true);
   });
 
-  test('diskon minus = invalid', () => {
-    const result = checkDiscount(-5);
+  test('diskon minus = tidak valid', () => {
+    const result = cekDiskon(-5);
     expect(result.ok).toBe(false);
     expect(result.msg).toContain('minus');
   });
 
-  test('diskon besar minus = invalid', () => {
-    const result = checkDiscount(-50);
+  test('diskon besar minus = tidak valid', () => {
+    const result = cekDiskon(-50);
     expect(result.ok).toBe(false);
   });
 
-  test('diskon > 100 = invalid', () => {
-    const result = checkDiscount(101);
+  test('diskon > 100 = tidak valid', () => {
+    const result = cekDiskon(101);
     expect(result.ok).toBe(false);
     expect(result.msg).toContain('100');
   });
 
-  test('diskon jauh diatas 100 = invalid', () => {
-    const result = checkDiscount(200);
+  test('diskon jauh lebih dari 100 = tidak valid', () => {
+    const result = cekDiskon(200);
     expect(result.ok).toBe(false);
   });
 
-  test('string bukan number = invalid', () => {
-    const result = checkDiscount('50');
+  test('string bukan number = tidak valid', () => {
+    const result = cekDiskon('50');
     expect(result.ok).toBe(false);
   });
 
-  test('NaN = invalid', () => {
-    const result = checkDiscount(NaN);
+  test('NaN = tidak valid', () => {
+    const result = cekDiskon(NaN);
     expect(result.ok).toBe(false);
   });
 });
 
 describe('validasi referral lengkap', () => {
-  test('kode dan diskon valid = ok', () => {
-    const result = validateReferral('PROMO2024', 30);
+  test('kode dan diskon keduanya valid = ok', () => {
+    const result = validasiReferral('PROMO2024', 30);
     expect(result.valid).toBe(true);
-    expect(result.data.code).toBe('PROMO2024');
-    expect(result.data.discount).toBe(30);
+    expect(result.data.kode).toBe('PROMO2024');
+    expect(result.data.diskon).toBe(30);
   });
 
-  test('kode kosong = error', () => {
-    const result = validateReferral('', 50);
+  test('kode kosong = gagal', () => {
+    const result = validasiReferral('', 50);
     expect(result.valid).toBe(false);
   });
 
-  test('diskon minus = error', () => {
-    const result = validateReferral('PROMO2024', -10);
+  test('diskon minus = gagal', () => {
+    const result = validasiReferral('PROMO2024', -10);
     expect(result.valid).toBe(false);
   });
 
-  test('diskon > 100 = error', () => {
-    const result = validateReferral('PROMO2024', 150);
+  test('diskon > 100 = gagal', () => {
+    const result = validasiReferral('PROMO2024', 150);
     expect(result.valid).toBe(false);
   });
 
-  test('keduanya salah = return error kode dulu', () => {
-    const result = validateReferral('', -50);
+  test('keduanya tidak valid = return error dari kode dulu', () => {
+    const result = validasiReferral('', -50);
     expect(result.valid).toBe(false);
   });
 });
