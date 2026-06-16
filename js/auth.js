@@ -244,9 +244,21 @@ function hideAuthGate(){
 async function refreshAdminFlag(user){
   if(!user){ isAdmin = false; return; }
   try{
+    // If we're using mock/local auth, derive admin from MOCK_USERS
+    if (mockLoggedIn && user?.email && MOCK_USERS[user.email]) {
+      isAdmin = !!MOCK_USERS[user.email].admin;
+      return;
+    }
     const token = await getIdTokenResult(user);
     isAdmin = !!token.claims?.admin;
-  }catch(err){ isAdmin = false; }
+  }catch(err){
+    // fallback to mock user flag if available, otherwise false
+    if (mockLoggedIn && user?.email && MOCK_USERS[user.email]) {
+      isAdmin = !!MOCK_USERS[user.email].admin;
+    } else {
+      isAdmin = false;
+    }
+  }
 }
 
 async function renderAfterAuth(user){
