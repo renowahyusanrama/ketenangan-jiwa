@@ -442,4 +442,28 @@ app.post("/payments/webhook", async (req, res) => {
   }
 });
 
+// Public admin data endpoint — returns events, orders, referrals (server-side)
+// WARNING: this exposes order data; keep protected in production.
+app.get("/public/admin_data", async (req, res) => {
+  try {
+    const eventsSnap = await db.collection("events").orderBy("updatedAt", "desc").get();
+    const events = [];
+    eventsSnap.forEach((d) => events.push({ id: d.id, ...d.data() }));
+
+    const ordersSnap = await db.collection("orders").orderBy("createdAt", "desc").limit(1000).get();
+    const orders = [];
+    ordersSnap.forEach((d) => orders.push({ id: d.id, ...d.data() }));
+
+    const refsSnap = await db.collection("referrals").get();
+    const referrals = [];
+    refsSnap.forEach((d) => referrals.push({ id: d.id, ...d.data() }));
+
+    res.set("Access-Control-Allow-Origin", "*");
+    return res.json({ events, orders, referrals });
+  } catch (err) {
+    console.error("public admin data error:", err);
+    res.status(500).json({ error: "Failed to load admin data", detail: err?.message || err });
+  }
+});
+
 exports.api = functions.https.onRequest(app);
