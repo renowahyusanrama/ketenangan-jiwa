@@ -2435,8 +2435,98 @@ if (FORCE_PUBLIC_ADMIN) {
   // set a fake current user and mark as admin
   const fakeUser = { email: "admin@mail.com", uid: "local-admin", displayName: "Admin" };
   setSession(fakeUser, true);
-  // call authorized handler to load events/orders/etc.
-  handleAuthorizedAdmin(fakeUser).catch(console.error);
+
+  // Try to fetch data from server-side admin endpoint which uses Admin SDK
+  // This allows loading real Firestore data without requiring client auth.
+  (async () => {
+    try {
+      const resp = await fetch("/api/public/admin_data");
+      if (!resp.ok) throw new Error("fetch failed: " + resp.status);
+      const payload = await resp.json();
+
+      // apply data to UI
+      applyPublicAdminData(payload, fakeUser);
+    } catch (err) {
+      console.error("Public admin fetch failed, falling back to client-side init:", err);
+      // fallback to normal init (will likely require login to show protected collections)
+      authController.init();
+    }
+  })();
 } else {
   authController.init();
+}
+
+// --- Helpers to render data coming from public admin endpoint ---
+function renderEventsFromRows(rows = []) {
+  if (!tableBody) return; // tableBody defined earlier
+  if (!rows.length) {
+    tableBody.innerHTML = `<tr><td colspan="9" class="muted">Belum ada event.</td></tr>`;
+    return;
+  }
+  eventsCache.clear();
+  rows.forEach((e) => eventsCache.set(e.id || e.slug || e._id || e.uid, e));
+  const html = rows
+    .map((e) => {
+      const statusClass = e.status === "published" ? "green" : "gray";
+      const ticketStatus = normalizeTicketStatus(e.ticketStatus || (e.soldOut ? "sold_out" : ""));
+      const ticketStatusClass = ticketStatus === "sold_out" ? "red" : "green";
+      const ticketStatusText = ticketStatus === "sold_out" ? "sold out" : "sell on";
+      const ticketToggleLabel = ticketStatus === "sold_out" ? "Sell On" : "Sold Out";
+      const ticketToggleNext = ticketStatus === "sold_out" ? "sell_on" : "sold_out";
+      const img = e.imageUrl ? `<a href="${e.imageUrl}" target="_blank">Lihat</a>` : "-";
+      const capacity = Number(e.capacity) || 0;
+      const used = Number(e.seatsUsed) || 0;
+      const quotaRegular = Number(e.quotaRegular) || 0;
+      const quotaVip = Number(e.quotaVip) || 0;
+      const usedReg = Number(e.seatsUsedRegular) || 0;
+      const usedVip = Number(e.seatsUsedVip) || 0;
+      let quotaText = capacity ? `${used}/${capacity}` : "∞";
+      if (quotaRegular || quotaVip) {
+        const regText = quotaRegular ? `${usedReg}/${quotaRegular} Reg` : null;
+        const vipText = quotaVip ? `${usedVip}/${quotaVip} VIP` : null;
+        quotaText = [regText, vipText].filter(Boolean).join(" · ") || quotaText;
+      }
+      const priceRegular = Number(e.priceRegular ?? e.amount ?? 0);
+      return `
+        <tr>
+          <td>${e.id}</td>
+          <td>${e.title || e.slug || "-"}</td>
+          <td>${e.type || e.eventType || "-"}</td>
+          <td>${priceRegular ? formatCurrency(priceRegular) : "Gratis"}</td>
+          <td>${quotaText}</td>
+          <td>${img}</td>
+          <td class="status-col"><span class="badge ${statusClass}">${(e.status||"").toUpperCase()}</span></td>
+          <td>${e.updatedAt ? formatDateTime(e.updatedAt) : "-"}</td>
+        </tr>
+      `;
+    })
+    .join("");
+  tableBody.innerHTML = html;
+  populateEventSelects();
+}
+
+function renderOrdersFromRows(rows = []) {
+  ordersCache = Array.isArray(rows) ? rows.slice() : [];
+  renderOrders(ordersCache, true, ordersCache.length);
+}
+
+function applyPublicAdminData(payload = {}, fakeUser) {
+  try {
+    const { events = [], orders = [], referrals = [] } = payload || {};
+    // set UI session
+    showLoggedInUI(fakeUser.email || fakeUser.uid);
+    setGuard("Akses admin (demo) diberikan.", true);
+    setDashboardVisible(true);
+    resetForm();
+
+    // render events & orders
+    renderEventsFromRows(events);
+    renderOrdersFromRows(orders);
+
+    // referrals: store in memory if needed
+    // simple cache
+    window.__PUBLIC_ADMIN_REFERRALS__ = referrals;
+  } catch (err) {
+    console.error("applyPublicAdminData error:", err);
+  }
 }
