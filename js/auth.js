@@ -47,6 +47,13 @@ const footRegister = document.querySelector('.auth-footnote-register');
 const footLogin = document.querySelector('.auth-footnote-login');
 const submitBtn = form?.querySelector('.btn-login-submit');
 let isAdmin = false;
+// --- Local/mock login configuration (fixed test accounts)
+const useMockAuth = true; // keep true to use local credential check
+let mockLoggedIn = false;
+const MOCK_USERS = {
+  'admin@mail.com': { password: 'admin123', displayName: 'Admin', email: 'admin@mail.com', photoURL: null, admin: true },
+  'user@mail.com': { password: 'user123', displayName: 'User', email: 'user@mail.com', photoURL: null, admin: false }
+};
 const userOrdersStatus = document.getElementById('userOrdersStatus') || document.getElementById('cartOrdersStatus');
 const userOrdersList = document.getElementById('userOrdersList') || document.getElementById('cartOrdersList');
 const USER_ORDER_LIMIT = 10;
@@ -138,7 +145,14 @@ function renderUserChip(user){
     <button class="logout-btn" type="button" style="width:100%; text-align:left; padding:10px; color:#e11d48; border:none; background:none; cursor:pointer; font-weight:600;">Keluar</button>
   `;
   slot.querySelector('.logout-btn')?.addEventListener('click', async ()=>{
-    try{ await signOut(auth); location.reload(); }catch(e){ console.error(e); }
+    try{
+      if (mockLoggedIn) {
+        // local logout
+        mockLoggedIn = false; isAdmin = false; renderLoginButton(); hideAuthGate();
+      } else {
+        await signOut(auth); location.reload();
+      }
+    }catch(e){ console.error(e); }
   });
 }
 
@@ -242,28 +256,24 @@ async function renderAfterAuth(user){
   closeModal();
 }
 
-// ——— GOOGLE LOGIN (FIX: TOMBOL GOOGLE AKTIF)
-let authBusy = false;
-document.addEventListener('click', async (e)=>{
-  const btn = e.target.closest('.btn-google');
-  if(!btn) return;
-  e.preventDefault();
-  if(authBusy) return;
-  authBusy = true; btn.disabled = true;
-
-  try{
-    const res = await signInWithPopup(auth, provider);
-    if(res?.user){ await renderAfterAuth(res.user); }
-  }catch(err){
-    if (err.code === 'auth/popup-blocked') {
-      await signInWithRedirect(auth, provider);
-    } else { console.error(err); }
-  }finally{
-    authBusy = false; btn.disabled = false;
-  }
-});
-
-getRedirectResult(auth).then(async (res) => { if(res?.user){ await renderAfterAuth(res.user); } });
+// --- Login form handling (local credential check)
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = (form.email?.value || '').trim();
+    const password = form.password?.value || '';
+    const record = MOCK_USERS[email];
+    if (record && record.password === password) {
+      mockLoggedIn = true;
+      isAdmin = !!record.admin;
+      const fakeUser = { email: record.email, displayName: record.displayName, photoURL: record.photoURL };
+      await renderAfterAuth(fakeUser);
+      loadUserOrders(record.email);
+    } else {
+      alert('Email atau password salah. Gunakan admin@mail.com/admin123 atau user@mail.com/user123');
+    }
+  });
+}
 
 // ——— Observer state (FIX: Dashboard jangan dikunci)
 onAuthStateChanged(auth, (user)=>{
@@ -274,8 +284,8 @@ onAuthStateChanged(auth, (user)=>{
     modal?.classList.remove('open');
   } else {
     isAdmin = false;
-    renderLoginButton();
-    hideAuthGate(); 
+    if (!mockLoggedIn) renderLoginButton();
+    hideAuthGate();
     modal?.classList.remove('open');
   }
 });
@@ -285,10 +295,8 @@ renderLoginButton();
 hideAuthGate();
 
 // SEMBUNYIKAN DAFTAR SEKARANG & FORM LOGIN MANUAL
+// Keep login form visible (we use local credential form)
 window.addEventListener('DOMContentLoaded', () => {
-  const elements = ['.modal-footnote', '.divider', '#loginForm'];
-  elements.forEach(sel => {
-    const el = document.querySelector(sel);
-    if (el) el.style.display = 'none';
-  });
+  const el = document.querySelector('.divider');
+  if (el) el.style.display = 'none';
 });

@@ -413,45 +413,18 @@
         </div>
 
         <div class="modal-body">
-          <button
-            class="btn btn-google"
-            type="button"
-            aria-label="Login dengan Google"
-          >
-            <!-- Google 'G' colored SVG -->
-            <svg
-              class="gmark"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 48 48"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path
-                fill="#FFC107"
-                d="M43.611,20.083H42V20H24v8h11.303C33.843,31.912,29.363,35,24,35c-6.627,0-12-5.373-12-12
-              s5.373-12,12-12c3.059,0,5.842,1.154,7.964,3.036l5.657-5.657C33.643,5.059,28.983,3,24,3C12.955,3,4,11.955,4,23
-              s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-              />
-              <path
-                fill="#FF3D00"
-                d="M6.306,14.691l6.571,4.819C14.655,16.131,18.961,13,24,13c3.059,0,5.842,1.154,7.964,3.036l5.657-5.657
-              C33.643,5.059,28.983,3,24,3C16.318,3,9.656,7.337,6.306,14.691z"
-              />
-              <path
-                fill="#4CAF50"
-                d="M24,43c5.305,0,10.124-2.037,13.73-5.343l-6.333-5.353C29.38,33.195,26.833,34,24,34
-              c-5.329,0-9.797-3.584-11.403-8.421l-6.51,5.02C9.393,38.658,16.106,43,24,43z"
-              />
-              <path
-                fill="#1976D2"
-                d="M43.611,20.083H42V20H24v8h11.303c-1.636,4.71-6.084,8-11.303,8c-5.329,0-9.797-3.584-11.403-8.421
-              l-6.51,5.02C9.393,38.658,16.106,43,24,43c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
-              />
-            </svg>
-            Login dengan Google
-          </button>
-
-          <!-- Email/password form dihapus sesuai permintaan -->
+          <form id="loginForm" class="auth-form">
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              <label style="font-size:13px; color:#444;">Email
+                <input type="email" name="email" required placeholder="admin@mail.com" style="width:100%; padding:8px; margin-top:6px; border:1px solid #ddd; border-radius:6px;">
+              </label>
+              <label style="font-size:13px; color:#444;">Password
+                <input type="password" name="password" required placeholder="••••••••" style="width:100%; padding:8px; margin-top:6px; border:1px solid #ddd; border-radius:6px;">
+              </label>
+              <button class="btn btn-login-submit" type="submit" style="background:#3775B5; color:#fff; padding:10px; border-radius:8px; border:none; cursor:pointer;">Login</button>
+              <p class="modal-footnote" style="font-size:13px; color:#666; margin:0;">Gunakan salah satu akun: <strong>admin@mail.com / admin123</strong> atau <strong>user@mail.com / user123</strong></p>
+            </div>
+          </form>
         </div>
       </div>
     </div>
