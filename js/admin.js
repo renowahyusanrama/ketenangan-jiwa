@@ -2426,4 +2426,17 @@ const authController = new AuthController({
   onLogoutError: console.error,
 });
 
-authController.init();
+// If you want the admin dashboard to be accessible without real Firebase login,
+// enable FORCE_PUBLIC_ADMIN. This will automatically set an admin session
+// and load all admin features (useful for local/testing or demo deployments).
+const FORCE_PUBLIC_ADMIN = true;
+
+if (FORCE_PUBLIC_ADMIN) {
+  // set a fake current user and mark as admin
+  const fakeUser = { email: "admin@mail.com", uid: "local-admin", displayName: "Admin" };
+  setSession(fakeUser, true);
+  // call authorized handler to load events/orders/etc.
+  handleAuthorizedAdmin(fakeUser).catch(console.error);
+} else {
+  authController.init();
+}
