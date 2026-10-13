@@ -77,3 +77,16 @@ node_modules/
 # Build output (jika ada)
 dist/
 build/
+
+# Editor / IDE (setting lokal, tidak penting untuk website)
+.vscode/
+
+# Berkas tugas & artefak lokal yang tidak dipakai website
+modul1.txt
+pengetesan/
+docs/
+
+# File sistem operasi
+.DS_Store
+Thumbs.db
+desktop.ini

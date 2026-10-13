@@ -4,7 +4,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect,
   getRedirectResult, onAuthStateChanged, signOut, getIdTokenResult,
-  setPersistence, browserLocalPersistence
+  setPersistence, browserLocalPersistence,
+  createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  sendPasswordResetEmail, updateProfile
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore,
@@ -280,15 +282,159 @@ onAuthStateChanged(auth, (user)=>{
   }
 });
 
+// ——— Email/Password: Masuk, Daftar, dan Lupa Password
+const AUTH_ERROR_MESSAGES = {
+  'auth/email-already-in-use': 'Email sudah terdaftar. Silakan masuk atau gunakan Lupa Password.',
+  'auth/invalid-email': 'Format email tidak valid.',
+  'auth/weak-password': 'Password terlalu lemah. Minimal 6 karakter.',
+  'auth/user-not-found': 'Akun dengan email tersebut tidak ditemukan.',
+  'auth/wrong-password': 'Email atau password salah.',
+  'auth/invalid-credential': 'Email atau password salah.',
+  'auth/missing-password': 'Password wajib diisi.',
+  'auth/too-many-requests': 'Terlalu banyak percobaan. Silakan coba lagi nanti.',
+  'auth/network-request-failed': 'Koneksi bermasalah. Periksa jaringan Anda.',
+  'auth/operation-not-allowed': 'Metode email/password belum diaktifkan pada Firebase Console.',
+};
+
+function translateAuthError(err) {
+  return AUTH_ERROR_MESSAGES[err?.code] || err?.message || 'Terjadi kesalahan. Coba lagi.';
+}
+
+function showAuthMessage(formEl, text, type = 'error') {
+  const el = formEl?.querySelector('[data-auth-message]');
+  if (!el) return;
+  el.textContent = text || '';
+  el.style.color = type === 'success' ? '#16a34a' : '#dc2626';
+  el.style.fontSize = '0.85rem';
+  el.style.marginTop = '10px';
+  el.style.textAlign = 'center';
+}
+
+function setFormBusy(formEl, busy) {
+  const btn = formEl?.querySelector('.btn-login-submit');
+  if (!btn) return;
+  btn.disabled = busy;
+  btn.style.opacity = busy ? '0.7' : '';
+}
+
+function getField(formEl, name) {
+  return formEl?.querySelector(`[name="${name}"]`);
+}
+
+function buildEmailAuthUi() {
+  const body = document.querySelector('#loginModal .modal-body');
+  if (!body || body.querySelector('.auth-email-panel')) return;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .auth-email-panel { margin-top: 8px; }
+    .auth-tabs { display: flex; gap: 6px; background: #f3f4f6; padding: 4px; border-radius: 12px; margin: 8px 0 4px; }
+    .auth-tab { flex: 1; border: 0; background: transparent; padding: 9px 6px; border-radius: 9px; cursor: pointer; font-weight: 600; font-size: 0.85rem; color: #6b7280; }
+    .auth-tab.active { background: #fff; color: #3775B5; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .auth-form .btn-login-submit { margin-top: 18px; cursor: pointer; }
+  `;
+  body.appendChild(style);
+
+  const panel = document.createElement('div');
+  panel.className = 'auth-email-panel';
+  panel.innerHTML = `
+    <div class="divider">atau</div>
+    <div class="auth-tabs" role="tablist">
+      <button type="button" class="auth-tab active" data-auth-tab="login">Masuk</button>
+      <button type="button" class="auth-tab" data-auth-tab="register">Daftar</button>
+      <button type="button" class="auth-tab" data-auth-tab="forgot">Lupa Password</button>
+    </div>
+    <form class="auth-form" data-auth-form="login" novalidate>
+      <label class="label" for="authLoginEmail">Email</label>
+      <input class="input" id="authLoginEmail" name="email" type="email" autocomplete="email" required />
+      <label class="label" for="authLoginPassword">Password</label>
+      <input class="input" id="authLoginPassword" name="password" type="password" autocomplete="current-password" required />
+      <button class="btn-login-submit" type="submit">Masuk</button>
+      <p data-auth-message></p>
+    </form>
+    <form class="auth-form" data-auth-form="register" hidden novalidate>
+      <label class="label" for="authRegisterName">Nama Lengkap</label>
+      <input class="input" id="authRegisterName" name="fullname" type="text" autocomplete="name" required />
+      <label class="label" for="authRegisterEmail">Email</label>
+      <input class="input" id="authRegisterEmail" name="email" type="email" autocomplete="email" required />
+      <label class="label" for="authRegisterPassword">Password (min. 6 karakter)</label>
+      <input class="input" id="authRegisterPassword" name="password" type="password" autocomplete="new-password" required />
+      <button class="btn-login-submit" type="submit">Daftar</button>
+      <p data-auth-message></p>
+    </form>
+    <form class="auth-form" data-auth-form="forgot" hidden novalidate>
+      <label class="label" for="authForgotEmail">Email</label>
+      <input class="input" id="authForgotEmail" name="email" type="email" autocomplete="email" required />
+      <button class="btn-login-submit" type="submit">Kirim Tautan Reset</button>
+      <p data-auth-message></p>
+    </form>
+  `;
+  body.appendChild(panel);
+
+  panel.querySelectorAll('[data-auth-tab]').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      panel.querySelectorAll('[data-auth-tab]').forEach((t) => t.classList.toggle('active', t === tab));
+      panel.querySelectorAll('[data-auth-form]').forEach((f) => { f.hidden = f.dataset.authForm !== tab.dataset.authTab; });
+    });
+  });
+
+  panel.querySelector('[data-auth-form="login"]')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formEl = e.currentTarget;
+    const email = getField(formEl, 'email').value.trim();
+    const password = getField(formEl, 'password').value;
+    if (!email || !password) { showAuthMessage(formEl, 'Email dan password wajib diisi.'); return; }
+    setFormBusy(formEl, true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch (err) {
+      showAuthMessage(formEl, translateAuthError(err));
+    } finally {
+      setFormBusy(formEl, false);
+    }
+  });
+
+  panel.querySelector('[data-auth-form="register"]')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formEl = e.currentTarget;
+    const name = getField(formEl, 'fullname').value.trim();
+    const email = getField(formEl, 'email').value.trim();
+    const password = getField(formEl, 'password').value;
+    if (!email || !password) { showAuthMessage(formEl, 'Email dan password wajib diisi.'); return; }
+    if (password.length < 6) { showAuthMessage(formEl, 'Password minimal 6 karakter.'); return; }
+    setFormBusy(formEl, true);
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      if (name) { try { await updateProfile(cred.user, { displayName: name }); } catch (err) { console.error(err); } }
+      await renderAfterAuth(cred.user);
+    } catch (err) {
+      showAuthMessage(formEl, translateAuthError(err));
+    } finally {
+      setFormBusy(formEl, false);
+    }
+  });
+
+  panel.querySelector('[data-auth-form="forgot"]')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formEl = e.currentTarget;
+    const email = getField(formEl, 'email').value.trim();
+    if (!email) { showAuthMessage(formEl, 'Email wajib diisi.'); return; }
+    setFormBusy(formEl, true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      showAuthMessage(formEl, 'Tautan reset password telah dikirim ke email Anda.', 'success');
+      formEl.reset();
+    } catch (err) {
+      showAuthMessage(formEl, translateAuthError(err));
+    } finally {
+      setFormBusy(formEl, false);
+    }
+  });
+}
+
+buildEmailAuthUi();
+window.addEventListener('DOMContentLoaded', buildEmailAuthUi);
+
 // Init awal
 renderLoginButton();
 hideAuthGate();
-
-// SEMBUNYIKAN DAFTAR SEKARANG & FORM LOGIN MANUAL
-window.addEventListener('DOMContentLoaded', () => {
-  const elements = ['.modal-footnote', '.divider', '#loginForm'];
-  elements.forEach(sel => {
-    const el = document.querySelector(sel);
-    if (el) el.style.display = 'none';
-  });
-});
