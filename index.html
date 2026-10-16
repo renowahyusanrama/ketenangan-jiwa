@@ -44,22 +44,26 @@
     </div>
 
     <!-- ================= NAVBAR ================= -->
-    <header class="site-header pb-3">
-      <div class="container nav nav-shell">
-        <div class="nav-left">
-          <button class="nav-burger" id="menuOpen" aria-label="Buka menu">
-            <span></span><span></span><span></span>
-          </button>
-        </div>
+    <header class="site-header" id="siteHeader">
+      <div class="container nav-shell">
+        <!-- Tombol menu (mobile) -->
+        <button class="nav-burger" id="menuOpen" aria-label="Buka menu">
+          <span></span><span></span><span></span>
+        </button>
 
-        <a
-          class="brand brand-center"
-          href="#beranda"
-          aria-label="Kembali ke beranda"
-        >
-          <img src="images/logo.png" alt="ketenangan jiwa" />
+        <!-- Brand -->
+        <a class="brand" href="#beranda" aria-label="Kembali ke beranda">
+          <img src="images/logo.png" alt="Ketenangan Jiwa" />
         </a>
 
+        <!-- Navigasi utama (desktop) -->
+        <nav class="nav-links" aria-label="Navigasi utama">
+          <a href="#beranda" class="active">Beranda</a>
+          <a href="#event">Event</a>
+          <a href="#kontak">Kontak</a>
+        </nav>
+
+        <!-- Aksi kanan -->
         <div class="nav-right">
           <button
             class="icon-btn cart-btn"
@@ -90,7 +94,7 @@
           <span aria-hidden="true">×</span>
         </button>
         <ul class="menu-list">
-          <li><a href="#beranda">Home</a></li>
+          <li><a href="#beranda">Beranda</a></li>
           <li><a href="#event">Event</a></li>
           <li><a href="#kontak">Kontak</a></li>
         </ul>

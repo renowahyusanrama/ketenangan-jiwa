@@ -1,6 +1,14 @@
 // Tahun dinamis di footer
 document.getElementById('year').textContent = new Date().getFullYear();
 
+// Header: tambah bayangan saat halaman di-scroll
+const siteHeader = document.getElementById('siteHeader');
+function syncHeaderShadow(){
+  siteHeader?.classList.toggle('scrolled', window.scrollY > 8);
+}
+window.addEventListener('scroll', syncHeaderShadow, { passive: true });
+syncHeaderShadow();
+
 // Toggle mobile nav (legacy)
 const toggle = document.querySelector('.nav-toggle');
 const links  = document.querySelector('.nav-links');

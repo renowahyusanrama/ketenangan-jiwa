@@ -66,34 +66,52 @@ body.no-scroll {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: linear-gradient(120deg, #ffffff 0%, #f0f8ff 100%);
+    background: rgba(255, 255, 255, 0.86);
     border-bottom: 1px solid var(--border);
-    backdrop-filter: saturate(180%) blur(10px);
-    box-shadow: 0 4px 12px rgba(55, 117, 181, .08);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    transition: box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.site-header.scrolled {
+    box-shadow: 0 10px 30px rgba(55, 117, 181, 0.12);
+    background: rgba(255, 255, 255, 0.95);
 }
 
 .site-header .container {
-    width: 100%;
-    max-width: none;
-    margin: 0 auto;
-    padding-inline: 16px;
+    width: min(1200px, 94%);
+    margin-inline: auto;
 }
 
-.nav {
+/* ===== New topbar layout ===== */
+.nav-shell {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 82px;
     gap: 16px;
-    position: relative;
+    min-height: 78px;
 }
 
 .brand {
     display: flex;
     align-items: center;
-    /* Flex tidak lagi diperlukan, tapi biarkan saja */
     color: var(--primary);
     text-decoration: none;
+    flex-shrink: 0;
+    line-height: 0;
+}
+
+.brand img {
+    height: 46px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    transition: transform 0.25s ease;
+}
+
+.brand:hover img {
+    transform: scale(1.03);
 }
 
 .brand-logo {
@@ -104,7 +122,6 @@ body.no-scroll {
     border-radius: 50%;
     overflow: hidden;
     box-shadow: 0 8px 24px rgba(55, 117, 181, .2);
-    /* Bayangan diperbesar untuk kesan menonjol */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -125,18 +142,20 @@ body.no-scroll {
     object-fit: contain;
 }
 
-/* Hapus style .brand-text karena sudah tidak ada */
+/* Navigasi utama (desktop) */
 .nav-links {
     display: flex;
     align-items: center;
-    gap: 40px
+    gap: 36px;
+    margin: 0 auto;
 }
 
 .nav-links a {
     color: #334155;
     text-decoration: none;
     font-weight: 600;
-    padding: 8px 0;
+    font-size: 16px;
+    padding: 10px 0;
     position: relative;
     transition: color 0.3s ease;
 }
@@ -144,10 +163,11 @@ body.no-scroll {
 .nav-links a::after {
     content: '';
     position: absolute;
-    bottom: 0;
+    bottom: 4px;
     left: 0;
     width: 0;
-    height: 2px;
+    height: 2.5px;
+    border-radius: 999px;
     background: var(--primary);
     transition: width 0.3s ease;
 }
@@ -215,36 +235,28 @@ body.no-scroll {
     transition: all 0.3s ease
 }
 
-/* ===== New topbar layout ===== */
-.nav-shell {
-    min-height: 76px;
-}
-
-.nav-left {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
+/* Aksi kanan (keranjang + profil) */
 .nav-right {
     display: flex;
     align-items: center;
     gap: 12px;
     position: relative;
+    flex-shrink: 0;
 }
 
+/* Hamburger — hanya tampil di layar kecil */
 .nav-burger {
+    display: none;
     width: 46px;
     height: 46px;
-    border: 2px solid #d6e3f2;
+    border: 1px solid #d6e3f2;
     background: #fff;
-    border-radius: 14px;
-    display: grid;
+    border-radius: 12px;
     place-items: center;
-    padding: 8px 10px;
+    padding: 0;
     cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 6px 16px rgba(55, 117, 181, 0.12);
+    transition: border-color 0.2s ease, background 0.2s ease;
+    flex-shrink: 0;
 }
 
 .nav-burger span {
@@ -260,26 +272,7 @@ body.no-scroll {
 }
 
 .nav-burger:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 24px rgba(55, 117, 181, 0.16);
-}
-
-.brand-center {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 200px;
-    height: auto;
-}
-
-.brand-center img {
-    width: 100%;
-    height: auto;
-    display: block;
-    object-fit: contain;
-    filter: none;
-    background: none;
+    border-color: var(--primary);
 }
 
 .icon-btn {
@@ -1379,26 +1372,14 @@ body.auth-locked>*:not(#auth-gate):not(#loginModal) {
         grid-template-columns: repeat(2, 1fr)
     }
 
-    .nav {
-        min-height: 80px;
-        justify-content: flex-start;
-        gap: 12px;
-    }
-
     .site-header .container {
-        padding-inline: 14px;
-    }
-
-    .nav-left {
-        gap: 12px;
+        padding-inline: 18px;
     }
 
     .nav-right {
-        margin-left: auto;
         gap: 10px;
     }
 
-    .nav-burger,
     .icon-btn {
         width: 46px;
         height: 46px;
@@ -1409,30 +1390,16 @@ body.auth-locked>*:not(#auth-gate):not(#loginModal) {
         height: 30px;
     }
 
-    .brand-center {
-        position: static;
-        transform: none;
-        width: 180px;
-        margin-left: 6px;
-    }
-
-    .brand-logo {
-        width: 68px;
-        height: 68px;
-    }
-
-    /* Sesuaikan ukuran logo di tablet */
-    .brand-logo-small {
-        width: 60px;
-        height: 60px;
-    }
-
-    .nav-links a {
-        font-size: 0.9rem;
+    .brand img {
+        height: 42px;
     }
 
     .nav-links {
-        gap: 30px;
+        gap: 26px;
+    }
+
+    .nav-links a {
+        font-size: 15px;
     }
 
     .event-track .card {
@@ -1461,71 +1428,41 @@ body.auth-locked>*:not(#auth-gate):not(#loginModal) {
 }
 
 @media (max-width: 720px) {
-    .nav-toggle {
-        display: flex
-    }
-
-    .nav {
-        gap: 10px;
-        min-height: 72px;
-    }
-
-    .site-header {
-        padding-bottom: 0;
-    }
-
-    .nav-shell {
-        min-height: 72px;
-    }
-
     .site-header .container {
         padding-inline: 12px;
     }
 
-    .nav-left {
+    .nav-shell {
+        min-height: 66px;
         gap: 10px;
+    }
+
+    .nav-links {
+        display: none;
+    }
+
+    .nav-burger {
+        display: grid;
+        width: 44px;
+        height: 44px;
     }
 
     .nav-right {
         gap: 10px;
     }
 
-    .nav-links {
-        position: fixed;
-        top: 80px;
-        left: 0;
-        right: 0;
-        /* Sesuaikan top dengan navbar height */
-        background: #fff;
-        border-bottom: 1px solid var(--border);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, .1);
-        transform: translateY(-20px);
-        opacity: 0;
-        pointer-events: none;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        padding: 20px;
-        transition: all 0.3s ease;
-        max-height: calc(100vh - 80px);
-        /* Sesuaikan juga */
-        overflow-y: auto;
+    .icon-btn {
+        width: 44px;
+        height: 44px;
     }
 
-    .nav-links.open {
-        transform: translateY(0);
-        opacity: 1;
-        pointer-events: auto
+    .icon-btn img {
+        width: 26px;
+        height: 26px;
     }
 
-    .nav-links a {
-        font-size: 1rem;
-        padding: 10px 0;
-    }
-
-    .btn-login {
-        align-self: flex-start;
-        margin-top: 10px;
+    .brand img {
+        height: 40px;
     }
 
     .cards {
@@ -1559,22 +1496,6 @@ body.auth-locked>*:not(#auth-gate):not(#loginModal) {
         width: 80vw;
         min-width: auto;
         border-radius: 0 16px 16px 0;
-    }
-
-    .brand-center {
-        width: 132px;
-        margin-left: 4px;
-    }
-
-    .icon-btn,
-    .nav-burger {
-        width: 42px;
-        height: 42px;
-    }
-
-    .icon-btn img {
-        width: 26px;
-        height: 26px;
     }
 
     .event-slider {
@@ -1677,12 +1598,23 @@ body.auth-locked>*:not(#auth-gate):not(#loginModal) {
 }
 
 @media (max-width: 540px) {
-    .nav {
-        min-height: 66px;
+    .brand img {
+        height: 34px;
     }
 
-    .brand-center {
-        width: 118px;
+    .nav-burger {
+        width: 42px;
+        height: 42px;
+    }
+
+    .icon-btn {
+        width: 42px;
+        height: 42px;
+    }
+
+    .icon-btn img {
+        width: 24px;
+        height: 24px;
     }
 
     .section {
