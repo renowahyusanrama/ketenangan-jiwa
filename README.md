@@ -86,8 +86,8 @@ Aplikasi web untuk mengelola kajian/event islami secara online — melihat jadwa
 
 ```bash
 # 1. Clone repositori
-git clone https://github.com/renowahyusanrama/ketenangan-hati.git
-cd ketenangan-hati
+git clone https://github.com/renowahyusanrama/ketenangan-jiwa.git
+cd ketenangan-jiwa
 
 # 2. Install dependensi root (untuk unit test)
 npm install
