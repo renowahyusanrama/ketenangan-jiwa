@@ -355,7 +355,7 @@ function buildEmailAuthUi() {
     <form class="auth-form" data-auth-form="register" hidden novalidate>
       <label class="label" for="authRegisterName">Nama Lengkap</label>
       <input class="input" id="authRegisterName" name="fullname" type="text" autocomplete="name" required />
-      <label class="label" for="authRegisterEmail">Email</label>
+      <label class="label" for="authRegisterEmail">Email (gunakan Gmail)</label>
       <input class="input" id="authRegisterEmail" name="email" type="email" autocomplete="email" required />
       <label class="label" for="authRegisterPassword">Password (min. 6 karakter)</label>
       <input class="input" id="authRegisterPassword" name="password" type="password" autocomplete="new-password" required />
@@ -401,6 +401,7 @@ function buildEmailAuthUi() {
     const email = getField(formEl, 'email').value.trim();
     const password = getField(formEl, 'password').value;
     if (!email || !password) { showAuthMessage(formEl, 'Email dan password wajib diisi.'); return; }
+    if (!/@gmail\.com$/i.test(email)) { showAuthMessage(formEl, 'Pendaftaran hanya untuk alamat Gmail.'); return; }
     if (password.length < 6) { showAuthMessage(formEl, 'Password minimal 6 karakter.'); return; }
     setFormBusy(formEl, true);
     try {
