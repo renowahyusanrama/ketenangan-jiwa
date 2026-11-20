@@ -1,4 +1,4 @@
-// js/events_feed.js - render list event di halaman utama dari Firestore
+// js/events_feed.js - render list event di halaman utama dari Firestore + pencarian & filter
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
@@ -8,7 +8,6 @@ import {
   query,
   where,
   orderBy,
-  limit,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { EVENT_SEED_DATA } from "./events_seed_data.js";
 
@@ -26,6 +25,12 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const cardsEl = document.getElementById("eventCards");
+const searchInput = document.getElementById("eventSearch");
+const filterSelect = document.getElementById("eventFilter");
+const emptyState = document.getElementById("eventEmptyState");
+
+let allEvents = [];
+
 if (cardsEl) {
   loadEvents().catch((err) => {
     console.error(err);
@@ -67,29 +72,70 @@ async function loadEvents() {
   const ref = collection(db, "events");
   let snap;
   try {
-    const q = query(ref, where("status", "==", "published"), orderBy("updatedAt", "desc"), limit(1));
+    const q = query(ref, where("status", "==", "published"), orderBy("updatedAt", "desc"));
     snap = await getDocs(q);
   } catch (err) {
     console.warn("Fallback load events (tanpa orderBy):", err?.message);
-    const q = query(ref, where("status", "==", "published"), limit(1));
-    snap = await getDocs(q);
+    try {
+      const q = query(ref, where("status", "==", "published"));
+      snap = await getDocs(q);
+    } catch (err2) {
+      console.warn("Fallback ke seed lokal:", err2?.message);
+      snap = null;
+    }
   }
 
-  if (snap.empty) {
-    console.warn("Firestore kosong, pakai fallback seed.");
-    renderList(EVENT_SEED_DATA.slice(0, 1));
-    return;
+  if (!snap || snap.empty) {
+    allEvents = EVENT_SEED_DATA.slice();
+  } else {
+    allEvents = [];
+    snap.forEach((d) => allEvents.push({ id: d.id, ...d.data() }));
   }
 
-  const list = [];
-  snap.forEach((d) => {
-    list.push({ id: d.id, ...d.data() });
-  });
+  applyFilter();
+}
+
+function matchesQuery(event) {
+  const term = (searchInput?.value || "").toString().trim().toLowerCase();
+  if (!term) return true;
+  const haystack = [
+    event.title,
+    event.tagline,
+    event.description,
+    event.speaker,
+    event.category,
+    event.location,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(term);
+}
+
+function matchesCategory(event) {
+  const cat = (filterSelect?.value || "").toString().trim();
+  if (!cat) return true;
+  return (event.category || "").toString().toLowerCase() === cat.toLowerCase();
+}
+
+function currentFilteredEvents() {
+  return allEvents.filter((e) => matchesQuery(e) && matchesCategory(e));
+}
+
+function applyFilter() {
+  const list = currentFilteredEvents();
   renderList(list);
+
+  if (!allEvents.length) return;
+
+  if (emptyState) {
+    emptyState.classList.toggle("hidden", list.length > 0);
+  }
+  cardsEl.classList.toggle("is-empty", list.length === 0);
 }
 
 function renderList(data) {
-  const list = Array.isArray(data) ? data.slice(0, 1) : [];
+  const list = Array.isArray(data) ? data : [];
   if (!list.length) {
     cardsEl.innerHTML = '<p class="muted">Belum ada event yang dipublikasikan.</p>';
     if (typeof window.refreshEventSlider === "function") {
@@ -128,3 +174,6 @@ function renderList(data) {
     window.refreshEventSlider();
   }
 }
+
+searchInput?.addEventListener("input", applyFilter);
+filterSelect?.addEventListener("change", applyFilter);

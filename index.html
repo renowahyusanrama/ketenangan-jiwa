@@ -194,6 +194,41 @@
           Event & Kajian Mendatang
         </h2>
 
+        <div
+          class="event-toolbar flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between"
+          data-animate="fade-up"
+        >
+          <div class="relative w-full sm:max-w-sm">
+            <i
+              class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            ></i>
+            <input
+              id="eventSearch"
+              type="search"
+              placeholder="Cari event / kajian..."
+              aria-label="Cari event"
+              class="w-full rounded-full border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm outline-none focus:border-[#3775B5] focus:ring-2 focus:ring-[#3775B5]/20"
+            />
+          </div>
+          <select
+            id="eventFilter"
+            aria-label="Filter kategori"
+            class="rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#3775B5]"
+          >
+            <option value="">Semua Kategori</option>
+            <option value="Tafsir">Tafsir</option>
+            <option value="Fiqih">Fiqih</option>
+            <option value="Hadits">Hadits</option>
+            <option value="Tahsin">Tahsin</option>
+            <option value="Sirah">Sirah</option>
+            <option value="Parenting">Parenting</option>
+          </select>
+        </div>
+
+        <p id="eventEmptyState" class="muted text-center hidden">
+          Tidak ada event yang cocok dengan pencarian atau filter Anda.
+        </p>
+
         <div class="event-slider single" data-animate="fade-up">
           <button
             class="event-nav prev"

@@ -959,6 +959,30 @@ function initPaymentForm(event) {
       return;
     }
 
+    const formData = new FormData(form);
+    const rawName = (formData.get("name")?.toString() || "").trim();
+    const rawPhone = (formData.get("phone")?.toString() || "").replace(/[\s-]/g, "");
+    if (rawName.length < 3) {
+      setHint("Ditolak pada Nama Lengkap: minimal 3 karakter.", "error");
+      return;
+    }
+    if (rawName.length > 50) {
+      setHint("Ditolak pada Nama Lengkap: maksimal 50 karakter.", "error");
+      return;
+    }
+    if (!/^[0-9]+$/.test(rawPhone)) {
+      setHint("Ditolak pada No. WhatsApp: hanya boleh angka.", "error");
+      return;
+    }
+    if (rawPhone.length < 10) {
+      setHint("Ditolak pada No. WhatsApp: minimal 10 digit.", "error");
+      return;
+    }
+    if (rawPhone.length > 15) {
+      setHint("Ditolak pada No. WhatsApp: maksimal 15 digit.", "error");
+      return;
+    }
+
     resultBox?.classList.add("hidden");
     const isFree = selectedPrice <= 0;
     setHint(isFree ? "Memproses e-ticket gratis..." : "Membuat tagihan pembayaran...", "info");
@@ -966,7 +990,6 @@ function initPaymentForm(event) {
     payBtn.disabled = true;
     setPayLabel("Memproses...");
 
-    const formData = new FormData(form);
     const email = normalizeEmail(formData.get("email"));
     if (!email.endsWith("@gmail.com")) {
       setHint("Email harus menggunakan Gmail (contoh: nama@gmail.com).", "error");

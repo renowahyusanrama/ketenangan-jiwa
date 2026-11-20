@@ -55,4 +55,14 @@ describe("validasi pendaftaran akun", () => {
     expect(result.valid).toBe(false);
     expect(result.errors).toContain("Nama wajib diisi");
   });
+
+  test("gagal jika dipanggil tanpa argumen (semua field kosong)", () => {
+    const result = validateRegistration();
+    expect(result.valid).toBe(false);
+    expect(result.errors).toEqual([
+      "Nama wajib diisi",
+      "Email wajib diisi",
+      "Password wajib diisi",
+    ]);
+  });
 });

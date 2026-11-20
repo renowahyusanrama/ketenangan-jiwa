@@ -94,3 +94,7 @@ docs/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Dokumen lokal (PDF & XLSX) - tidak ikut di-push
+*.pdf
+*.xlsx

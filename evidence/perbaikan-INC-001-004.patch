@@ -1,0 +1,211 @@
+﻿diff --git a/index.html b/index.html
+index 3a06b2d..94afaf1 100644
+--- a/index.html
++++ b/index.html
+@@ -194,6 +194,41 @@
+           Event & Kajian Mendatang
+         </h2>
+ 
++        <div
++          class="event-toolbar flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between"
++          data-animate="fade-up"
++        >
++          <div class="relative w-full sm:max-w-sm">
++            <i
++              class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
++            ></i>
++            <input
++              id="eventSearch"
++              type="search"
++              placeholder="Cari event / kajian..."
++              aria-label="Cari event"
++              class="w-full rounded-full border border-gray-200 bg-white pl-10 pr-4 py-2.5 text-sm outline-none focus:border-[#3775B5] focus:ring-2 focus:ring-[#3775B5]/20"
++            />
++          </div>
++          <select
++            id="eventFilter"
++            aria-label="Filter kategori"
++            class="rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#3775B5]"
++          >
++            <option value="">Semua Kategori</option>
++            <option value="Tafsir">Tafsir</option>
++            <option value="Fiqih">Fiqih</option>
++            <option value="Hadits">Hadits</option>
++            <option value="Tahsin">Tahsin</option>
++            <option value="Sirah">Sirah</option>
++            <option value="Parenting">Parenting</option>
++          </select>
++        </div>
++
++        <p id="eventEmptyState" class="muted text-center hidden">
++          Tidak ada event yang cocok dengan pencarian atau filter Anda.
++        </p>
++
+         <div class="event-slider single" data-animate="fade-up">
+           <button
+             class="event-nav prev"
+diff --git a/js/event_detail.js b/js/event_detail.js
+index c3bf8d5..1585e9a 100644
+--- a/js/event_detail.js
++++ b/js/event_detail.js
+@@ -959,6 +959,30 @@ function initPaymentForm(event) {
+       return;
+     }
+ 
++    const formData = new FormData(form);
++    const rawName = (formData.get("name")?.toString() || "").trim();
++    const rawPhone = (formData.get("phone")?.toString() || "").replace(/[\s-]/g, "");
++    if (rawName.length < 3) {
++      setHint("Ditolak pada Nama Lengkap: minimal 3 karakter.", "error");
++      return;
++    }
++    if (rawName.length > 50) {
++      setHint("Ditolak pada Nama Lengkap: maksimal 50 karakter.", "error");
++      return;
++    }
++    if (!/^[0-9]+$/.test(rawPhone)) {
++      setHint("Ditolak pada No. WhatsApp: hanya boleh angka.", "error");
++      return;
++    }
++    if (rawPhone.length < 10) {
++      setHint("Ditolak pada No. WhatsApp: minimal 10 digit.", "error");
++      return;
++    }
++    if (rawPhone.length > 15) {
++      setHint("Ditolak pada No. WhatsApp: maksimal 15 digit.", "error");
++      return;
++    }
++
+     resultBox?.classList.add("hidden");
+     const isFree = selectedPrice <= 0;
+     setHint(isFree ? "Memproses e-ticket gratis..." : "Membuat tagihan pembayaran...", "info");
+@@ -966,7 +990,6 @@ function initPaymentForm(event) {
+     payBtn.disabled = true;
+     setPayLabel("Memproses...");
+ 
+-    const formData = new FormData(form);
+     const email = normalizeEmail(formData.get("email"));
+     if (!email.endsWith("@gmail.com")) {
+       setHint("Email harus menggunakan Gmail (contoh: nama@gmail.com).", "error");
+diff --git a/js/events_feed.js b/js/events_feed.js
+index 7b8d3e0..51fe99a 100644
+--- a/js/events_feed.js
++++ b/js/events_feed.js
+@@ -1,4 +1,4 @@
+-// js/events_feed.js - render list event di halaman utama dari Firestore
++// js/events_feed.js - render list event di halaman utama dari Firestore + pencarian & filter
+ 
+ import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+ import {
+@@ -8,7 +8,6 @@ import {
+   query,
+   where,
+   orderBy,
+-  limit,
+ } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+ import { EVENT_SEED_DATA } from "./events_seed_data.js";
+ 
+@@ -26,6 +25,12 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+ const db = getFirestore(app);
+ 
+ const cardsEl = document.getElementById("eventCards");
++const searchInput = document.getElementById("eventSearch");
++const filterSelect = document.getElementById("eventFilter");
++const emptyState = document.getElementById("eventEmptyState");
++
++let allEvents = [];
++
+ if (cardsEl) {
+   loadEvents().catch((err) => {
+     console.error(err);
+@@ -67,29 +72,70 @@ async function loadEvents() {
+   const ref = collection(db, "events");
+   let snap;
+   try {
+-    const q = query(ref, where("status", "==", "published"), orderBy("updatedAt", "desc"), limit(1));
++    const q = query(ref, where("status", "==", "published"), orderBy("updatedAt", "desc"));
+     snap = await getDocs(q);
+   } catch (err) {
+     console.warn("Fallback load events (tanpa orderBy):", err?.message);
+-    const q = query(ref, where("status", "==", "published"), limit(1));
+-    snap = await getDocs(q);
++    try {
++      const q = query(ref, where("status", "==", "published"));
++      snap = await getDocs(q);
++    } catch (err2) {
++      console.warn("Fallback ke seed lokal:", err2?.message);
++      snap = null;
++    }
+   }
+ 
+-  if (snap.empty) {
+-    console.warn("Firestore kosong, pakai fallback seed.");
+-    renderList(EVENT_SEED_DATA.slice(0, 1));
+-    return;
++  if (!snap || snap.empty) {
++    allEvents = EVENT_SEED_DATA.slice();
++  } else {
++    allEvents = [];
++    snap.forEach((d) => allEvents.push({ id: d.id, ...d.data() }));
+   }
+ 
+-  const list = [];
+-  snap.forEach((d) => {
+-    list.push({ id: d.id, ...d.data() });
+-  });
++  applyFilter();
++}
++
++function matchesQuery(event) {
++  const term = (searchInput?.value || "").toString().trim().toLowerCase();
++  if (!term) return true;
++  const haystack = [
++    event.title,
++    event.tagline,
++    event.description,
++    event.speaker,
++    event.category,
++    event.location,
++  ]
++    .filter(Boolean)
++    .join(" ")
++    .toLowerCase();
++  return haystack.includes(term);
++}
++
++function matchesCategory(event) {
++  const cat = (filterSelect?.value || "").toString().trim();
++  if (!cat) return true;
++  return (event.category || "").toString().toLowerCase() === cat.toLowerCase();
++}
++
++function currentFilteredEvents() {
++  return allEvents.filter((e) => matchesQuery(e) && matchesCategory(e));
++}
++
++function applyFilter() {
++  const list = currentFilteredEvents();
+   renderList(list);
++
++  if (!allEvents.length) return;
++
++  if (emptyState) {
++    emptyState.classList.toggle("hidden", list.length > 0);
++  }
++  cardsEl.classList.toggle("is-empty", list.length === 0);
+ }
+ 
+ function renderList(data) {
+-  const list = Array.isArray(data) ? data.slice(0, 1) : [];
++  const list = Array.isArray(data) ? data : [];
+   if (!list.length) {
+     cardsEl.innerHTML = '<p class="muted">Belum ada event yang dipublikasikan.</p>';
+     if (typeof window.refreshEventSlider === "function") {
+@@ -128,3 +174,6 @@ function renderList(data) {
+     window.refreshEventSlider();
+   }
+ }
++
++searchInput?.addEventListener("input", applyFilter);
++filterSelect?.addEventListener("change", applyFilter);
+\ No newline at end of file
